@@ -1,34 +1,28 @@
-"""
-api/main.py
-Servidor Principal FastAPI.
-Recebe os pedidos do Front-End, orquestra os dados externos e devolve a inteligência formatada.
-"""
-
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from .integrations import ExternalAPI
 from .database import db
 
 app = FastAPI(title="ACES-UrbanFlow Decision Support Engine")
 api = ExternalAPI()
-# from api.database import db  # Será utilizado quando estruturarmos a escrita no Supabase
 
-app = FastAPI(title="ACES-UrbanFlow Decision Support Engine")
-api = ExternalAPI()
-
-# Configuração rigorosa de CORS para permitir a comunicação com o browser
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite que qualquer site chame a sua API
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/api/v1/health")
-async def health_check():
-    """Confirma que o servidor e o pipeline de dados estão ativos."""
-    return {"status": "online", "system": "ACES-UrbanFlow Preditivo"}
+# Serve os arquivos CSS, JS e imagens da pasta src/
+app.mount("/src", StaticFiles(directory="src"), name="static")
+
+# Serve o index.html na raiz
+@app.get("/")
+async def serve_root():
+    return FileResponse("index.html")
 
 @app.get("/api/v1/analyze-event/")
 async def analyze_event_logistics(
