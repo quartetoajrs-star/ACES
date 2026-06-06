@@ -7,6 +7,7 @@ Recebe os pedidos do Front-End, orquestra os dados externos e devolve a intelig√
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from api.integrations import ExternalAPI
+from database import db
 # from api.database import db  # Ser√° utilizado quando estruturarmos a escrita no Supabase
 
 app = FastAPI(title="ACES-UrbanFlow Decision Support Engine")
