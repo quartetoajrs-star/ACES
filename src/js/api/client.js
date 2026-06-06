@@ -4,7 +4,7 @@
 
 // Enquanto testa no seu computador, mantenha o localhost. 
 // Para o deploy, substitua pelo URL do Render (ex: https://aces-urbanflow.onrender.com/api/v1)
-const API_BASE_URL = 'https://aces-c4av.onrender.com';
+const API_BASE_URL = 'https://aces-c4av.onrender.com/api/v1';
 
 export const ApiClient = {
     
