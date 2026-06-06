@@ -6,16 +6,9 @@ import { EventsManager } from './events.js';
 import { AppState } from './state.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Delegação de Eventos: O Body escuta TUDO
-    document.body.addEventListener('click', (event) => {
-        
-        // 1. Caso: Clique nos Botões do Modal
-        if (event.target.matches('.modal-actions .button')) {
-            const modal = document.getElementById('modalBackdrop');
-            if (modal) modal.style.display = 'none';
-            console.log("Modal fechado via delegação.");
-            initializeApp();
-        }
+    console.log("Sistema ACES-UrbanFlow carregado com sucesso!");
+    // ... o resto da sua lógica de botões aqui
+});
 
         // 2. Caso: Clique no botão "Analisar Risco" dentro dos cards
         if (event.target.matches('.event-card .button-primary')) {
