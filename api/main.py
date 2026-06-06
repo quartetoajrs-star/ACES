@@ -4,18 +4,13 @@ Servidor Principal FastAPI.
 Recebe os pedidos do Front-End, orquestra os dados externos e devolve a inteligência formatada.
 """
 
-from fastapi import Query
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from .integrations import ExternalAPI
 from .database import db
-import sys
-import os
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from fastapi import FastAPI
-from database import db          
-from integrations import ExternalAPI
+app = FastAPI(title="ACES-UrbanFlow Decision Support Engine")
+api = ExternalAPI()
 # from api.database import db  # Será utilizado quando estruturarmos a escrita no Supabase
 
 app = FastAPI(title="ACES-UrbanFlow Decision Support Engine")
