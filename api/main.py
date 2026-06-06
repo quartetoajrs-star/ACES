@@ -24,7 +24,8 @@ api = ExternalAPI()
 # Configuração rigorosa de CORS para permitir a comunicação com o browser
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Permite que qualquer site chame a sua API
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
