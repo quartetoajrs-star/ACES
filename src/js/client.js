@@ -1,7 +1,3 @@
-/**
- * Faz a ponte entre o front-end Aces-UrbanFlow e a API Python.
- */
-
 // Enquanto testa no seu computador, mantenha o localhost. 
 // Para o deploy, substitua pelo URL do Render (ex: https://aces-urbanflow.onrender.com/api/v1)
 const API_BASE_URL = 'https://aces-c4av.onrender.com';
@@ -46,12 +42,13 @@ export const ApiClient = {
         
         // Codifica os parâmetros para garantir que espaços e caracteres especiais não quebram o URL
         const params = `?event_name=${encodeURIComponent(eventName)}&city=${encodeURIComponent(city)}&user_date=${encodeURIComponent(userDate)}`;
-        return await this.fetch(`/analyze-event/${params}`);
+        return await this.fetch(`/api/v1/analyze-event/${params}`);
     },
 
     // 2. Descobre eventos regionais vindos da Ticketmaster / API-Football
     async discoverEvents(city) {
         if (!city) return null;
-        return await this.fetch(`/discover/?city=${encodeURIComponent(city)}`);
+        return await this.fetch(`/api/v1/discover/?city=${encodeURIComponent(city)}`);
     }
 };
+
