@@ -1,0 +1,575 @@
+/* Acabamento visual, alertas, mapa e estados de interação. */
+
+/* Cabeçalhos de tela sem elemento visual competindo com o título. */
+.screen-heading::after {
+  display: none;
+}
+
+.screen-heading h1 {
+  max-width: min(860px, 100%);
+}
+
+.alert-card {
+  overflow: hidden;
+  gap: 0.45rem;
+  min-height: auto;
+  padding: 1rem 1rem 1rem 1.12rem;
+  border: 1px solid rgba(230, 237, 243, 0.12);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(17, 31, 54, 0.78), rgba(8, 18, 34, 0.82));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 14px 34px rgba(0, 0, 0, 0.18);
+}
+
+.alert-card::before {
+  top: 1rem;
+  bottom: 1rem;
+  left: 0;
+  width: 3px;
+  background: var(--flow);
+}
+
+.alert-card h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 0.98rem;
+}
+
+.alert-card p {
+  margin: 0;
+  color: rgba(230, 237, 243, 0.72);
+}
+
+.alert-high,
+.alert-medium,
+.alert-low,
+.alert-type-crowd,
+.alert-type-risk {
+  background:
+    linear-gradient(145deg, rgba(17, 31, 54, 0.78), rgba(8, 18, 34, 0.82));
+}
+
+.alert-high::before,
+.alert-medium::before {
+  background: var(--alert);
+}
+
+.alert-type-crowd::before,
+.alert-type-risk::before {
+  background: var(--risk);
+}
+
+.alert-low::before {
+  background: var(--flow);
+}
+
+.alert-card .badge {
+  min-height: 24px;
+  padding: 0.18rem 0.58rem;
+  font-size: 0.72rem;
+}
+
+.alert-high .badge,
+.alert-medium .badge {
+  border-color: rgba(245, 158, 11, 0.34);
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+}
+
+.alert-type-crowd .badge,
+.alert-type-risk .badge {
+  border-color: rgba(220, 38, 38, 0.34);
+  background: rgba(220, 38, 38, 0.1);
+  color: #fca5a5;
+}
+
+.alert-low .badge {
+  border-color: rgba(0, 229, 211, 0.32);
+  background: rgba(0, 229, 211, 0.08);
+  color: var(--flow);
+}
+
+.preview-road,
+.map-road {
+  display: none;
+}
+
+.preview-road-network,
+.city-road-network {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.preview-road-network path,
+.city-road-network path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.preview-road-network .road-major,
+.city-road-network .road-major {
+  stroke: #dce8f5;
+  stroke-width: 28;
+  filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+}
+
+.preview-road-network .road-secondary,
+.city-road-network .road-secondary {
+  stroke: rgba(220, 232, 245, 0.78);
+  stroke-width: 18;
+}
+
+.preview-road-network .road-minor,
+.city-road-network .road-minor {
+  stroke: rgba(220, 232, 245, 0.48);
+  stroke-width: 10;
+}
+
+.preview-road-network path + path,
+.city-road-network path + path {
+  paint-order: stroke;
+}
+
+.road-node {
+  fill: #0d1a2d;
+  stroke: rgba(220, 232, 245, 0.82);
+  stroke-width: 5;
+}
+
+.preview-road-label,
+.map-road-label {
+  z-index: 4;
+}
+
+.preview-label-a {
+  left: 38%;
+  top: 54%;
+  transform: rotate(-7deg);
+}
+
+.preview-label-b {
+  right: 13%;
+  top: 36%;
+  transform: rotate(64deg);
+}
+
+.label-central {
+  left: 42%;
+  top: 54%;
+  transform: rotate(-7deg);
+}
+
+.label-arena {
+  left: 57%;
+  top: 40%;
+  transform: rotate(-30deg);
+}
+
+.label-norte {
+  left: 26%;
+  top: 18%;
+  transform: rotate(-6deg);
+}
+
+.label-acesso {
+  right: 13%;
+  top: 32%;
+  transform: rotate(64deg);
+}
+
+.time-chip,
+.timeline-row time {
+  border: 1px solid rgba(0, 229, 211, 0.22);
+  background: rgba(0, 229, 211, 0.08);
+  color: var(--flow);
+  box-shadow: none;
+}
+
+.time-chip {
+  min-width: 60px;
+  min-height: 40px;
+  border-radius: 999px;
+}
+
+.timeline-row time {
+  display: grid;
+  place-items: center;
+  min-height: 36px;
+  border-radius: 999px;
+}
+
+.icon-control {
+  border: 1px solid rgba(37, 99, 255, 0.22);
+  background: rgba(37, 99, 255, 0.12);
+  color: #6fb5ff;
+}
+
+.icon-control.danger {
+  border-color: rgba(230, 237, 243, 0.16);
+  background: rgba(230, 237, 243, 0.08);
+  color: #ffffff;
+}
+
+/* Cards de alerta com estado visual discreto e prioridade pelo conteúdo. */
+.alert-card,
+.alert-high,
+.alert-medium,
+.alert-low,
+.alert-type-crowd,
+.alert-type-risk {
+  border-color: rgba(230, 237, 243, 0.1);
+  background:
+    linear-gradient(145deg, rgba(13, 25, 43, 0.84), rgba(8, 18, 34, 0.8));
+}
+
+.alert-card {
+  padding: 1rem;
+}
+
+.alert-card::before {
+  top: 1rem;
+  left: auto;
+  right: 1rem;
+  bottom: auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(149, 163, 184, 0.7);
+  box-shadow: 0 0 0 5px rgba(149, 163, 184, 0.08);
+}
+
+.alert-high::before,
+.alert-medium::before,
+.alert-type-crowd::before,
+.alert-type-risk::before,
+.alert-low::before {
+  background: rgba(149, 163, 184, 0.72);
+  box-shadow: 0 0 0 5px rgba(149, 163, 184, 0.08);
+}
+
+.alert-card .badge,
+.alert-high .badge,
+.alert-medium .badge,
+.alert-type-crowd .badge,
+.alert-type-risk .badge,
+.alert-low .badge {
+  min-height: 22px;
+  padding: 0.12rem 0.52rem;
+  border-color: rgba(230, 237, 243, 0.11);
+  background: rgba(230, 237, 243, 0.055);
+  color: rgba(230, 237, 243, 0.76);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.alert-card h3 {
+  color: rgba(255, 255, 255, 0.94);
+  font-weight: 800;
+}
+
+/* Rede viária usada quando o mapa opera sem imagem base externa. */
+.map-canvas {
+  border-color: rgba(230, 237, 243, 0.11);
+  background:
+    radial-gradient(300px 220px at 82% 22%, rgba(37, 99, 255, 0.08), transparent 68%),
+    radial-gradient(240px 170px at 18% 78%, rgba(0, 229, 211, 0.06), transparent 70%),
+    linear-gradient(90deg, rgba(53, 163, 255, 0.026) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(53, 163, 255, 0.024) 1px, transparent 1px),
+    #0c182a;
+}
+
+.map-district {
+  border-color: rgba(230, 237, 243, 0.055);
+}
+
+.district-park {
+  background: rgba(0, 229, 211, 0.045);
+}
+
+.district-water {
+  background: rgba(37, 99, 255, 0.07);
+}
+
+.district-event {
+  background: rgba(230, 237, 243, 0.04);
+}
+
+.city-road-network {
+  opacity: 0.82;
+}
+
+.city-road-network .road-major {
+  stroke: rgba(223, 233, 243, 0.78);
+  stroke-width: 17;
+}
+
+.city-road-network .road-secondary {
+  stroke: rgba(201, 216, 230, 0.48);
+  stroke-width: 9;
+}
+
+.city-road-network .road-minor {
+  stroke: rgba(175, 194, 213, 0.32);
+  stroke-width: 5;
+}
+
+.city-road-network .road-node {
+  fill: rgba(12, 24, 42, 0.9);
+  stroke: rgba(214, 229, 242, 0.42);
+  stroke-width: 3;
+}
+
+.map-road-label {
+  color: rgba(230, 237, 243, 0.44);
+  font-size: 0.68rem;
+}
+
+.label-central {
+  left: 41%;
+  top: 55%;
+}
+
+.label-arena {
+  left: 56%;
+  top: 43%;
+}
+
+.label-norte {
+  left: 25%;
+  top: 19%;
+}
+
+.label-acesso {
+  right: 14%;
+  top: 34%;
+}
+
+.route-overlay-main {
+  z-index: 5;
+  left: 18%;
+  top: 58%;
+  width: 60%;
+  height: 5px;
+  background: linear-gradient(90deg, rgba(0, 229, 211, 0.86), rgba(37, 99, 255, 0.86));
+  box-shadow: 0 0 0 3px rgba(0, 229, 211, 0.08);
+}
+
+.route-overlay-alt {
+  z-index: 5;
+  left: 23%;
+  top: 66%;
+  width: 54%;
+  border-top-color: rgba(0, 229, 211, 0.48);
+}
+
+.density-zone,
+.risk-zone {
+  z-index: 3;
+  width: 92px;
+  min-height: 52px;
+  margin: -26px 0 0 -46px;
+  border-radius: 999px;
+  color: transparent;
+  font-size: 0;
+  backdrop-filter: blur(3px);
+  box-shadow: none;
+}
+
+.density-zone {
+  border-color: rgba(245, 158, 11, 0.18);
+  background: rgba(245, 158, 11, 0.075);
+}
+
+.risk-zone {
+  border-color: rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.075);
+}
+
+.map-marker {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1px solid rgba(230, 237, 243, 0.55);
+  background: rgba(37, 99, 255, 0.82);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.map-marker:hover {
+  transform: translateY(-1px) scale(1.03);
+}
+
+.marker-icon,
+.marker-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.map-marker.is-selected {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 5px rgba(0, 229, 211, 0.12), 0 14px 26px rgba(0, 0, 0, 0.24);
+}
+
+.marker-risk,
+.marker-crowd,
+.map-marker.is-crowded {
+  background: rgba(220, 38, 38, 0.82);
+}
+
+.poi-details {
+  border-color: rgba(230, 237, 243, 0.11);
+  background:
+    linear-gradient(145deg, rgba(13, 25, 43, 0.88), rgba(8, 18, 34, 0.84));
+}
+
+.poi-details .alert-inline {
+  border-color: rgba(230, 237, 243, 0.12);
+  background: rgba(230, 237, 243, 0.055);
+  color: rgba(230, 237, 243, 0.84);
+}
+
+/* Base cartográfica escura com pontos identificáveis por pictograma. */
+.map-canvas {
+  min-height: min(78vh, 760px);
+  border-color: rgba(53, 163, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(5, 13, 27, 0.04), rgba(5, 13, 27, 0.16)),
+    url("../../assets/img/urbanflow-map-base.png") center / cover no-repeat,
+    #071426;
+}
+
+.preview-map {
+  background:
+    linear-gradient(180deg, rgba(5, 13, 27, 0.06), rgba(5, 13, 27, 0.18)),
+    url("../../assets/img/urbanflow-map-base.png") center / cover no-repeat,
+    #071426;
+}
+
+.map-grid,
+.map-district,
+.city-road-network,
+.map-road-label,
+.route-overlay,
+.preview-road-network,
+.preview-road-label,
+.preview-district,
+.preview-risk {
+  display: none;
+}
+
+.density-zone,
+.risk-zone {
+  opacity: 0;
+}
+
+.map-marker {
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  border: 1px solid rgba(230, 237, 243, 0.5);
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(4, 22, 43, 0.92), rgba(0, 229, 211, 0.42));
+  color: #e6fff9;
+  box-shadow:
+    0 0 0 7px rgba(0, 229, 211, 0.1),
+    0 0 24px rgba(0, 229, 211, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.marker-icon {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  pointer-events: none;
+}
+
+.marker-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.15;
+}
+
+.map-marker:hover {
+  transform: translateY(-1px) scale(1.12);
+}
+
+.map-marker.is-selected,
+.marker-stadium {
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border-color: rgba(230, 237, 243, 0.78);
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.2), transparent 38%),
+    linear-gradient(145deg, rgba(37, 99, 255, 0.96), rgba(0, 229, 211, 0.74));
+  color: #ffffff;
+  box-shadow:
+    0 0 0 9px rgba(37, 99, 255, 0.16),
+    0 0 34px rgba(37, 99, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.marker-hospital,
+.marker-pharmacy,
+.marker-transport,
+.marker-entrance {
+  border-color: rgba(0, 229, 211, 0.58);
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(0, 109, 142, 0.92), rgba(0, 229, 211, 0.66));
+  color: #eafffb;
+}
+
+.marker-hotel,
+.marker-bar {
+  border-color: rgba(145, 179, 223, 0.42);
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.14), transparent 38%),
+    linear-gradient(145deg, rgba(16, 39, 78, 0.94), rgba(35, 73, 122, 0.68));
+  color: #dceaff;
+}
+
+.marker-restaurant {
+  border-color: rgba(53, 163, 255, 0.52);
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.17), transparent 38%),
+    linear-gradient(145deg, rgba(20, 91, 148, 0.92), rgba(0, 229, 211, 0.55));
+  color: #f3fffd;
+}
+
+.marker-risk,
+.marker-crowd,
+.map-marker.is-crowded {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-color: rgba(255, 149, 139, 0.64);
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(239, 68, 68, 0.95), rgba(116, 31, 55, 0.92));
+  color: #fff7f5;
+  box-shadow:
+    0 0 0 8px rgba(255, 99, 82, 0.12),
+    0 0 26px rgba(255, 99, 82, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.preview-pin {
+  width: 15px;
+  height: 15px;
+  border-width: 2px;
+  box-shadow: 0 0 0 7px rgba(0, 229, 211, 0.14), 0 0 22px rgba(0, 229, 211, 0.34);
+}
+
