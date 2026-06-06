@@ -43,7 +43,7 @@
           <span></span>
         </button>
       </header>
-
+ 
       <nav class="primary-nav" id="primaryNav" aria-label="Navegação principal">
         <div class="nav-brand" aria-hidden="true">
           <span class="nav-brand-mark">
@@ -62,7 +62,7 @@
         <button class="nav-link" type="button" data-screen-target="final"><span class="line-icon icon-check"></span><span>Roteiro final</span></button>
         <button class="nav-link" type="button" data-screen-target="ratings"><span class="line-icon icon-user"></span><span>Avaliar locais</span></button>
       </nav>
-
+ 
       <main class="main-content" id="mainContent">
         <section class="screen is-active" id="screen-welcome" data-screen="welcome">
           <div class="welcome-hero">
@@ -75,7 +75,7 @@
               <span class="brand-curve curve-two"></span>
               <span class="brand-node"></span>
             </div>
-
+ 
             <div class="welcome-copy">
               <div class="hero-lockup" aria-label="UrbanFlow">
                 <img class="hero-logo-image" src="src/assets/img/urbanflow-logo.png" alt="UrbanFlow - Mobilidade urbana para eventos" />
@@ -88,7 +88,7 @@
                 <button class="button button-secondary" type="button" data-screen-target="map">Ver mapa simulado</button>
               </div>
             </div>
-
+ 
             <div class="app-preview-card" aria-label="Prévia visual do UrbanFlow">
               <div class="preview-topbar">
                 <span class="preview-brand">
@@ -128,7 +128,7 @@
               </div>
             </div>
           </div>
-
+ 
           <div class="indicator-grid">
             <article class="indicator-card">
               <span class="line-icon icon-map"></span>
@@ -147,21 +147,21 @@
             </article>
           </div>
         </section>
-
+ 
         <section class="screen" id="screen-home" data-screen="home">
           <div class="screen-heading">
             <span class="eyebrow">Seleção de evento</span>
             <h1>Encontre seu evento</h1>
             <p class="screen-subtitle">Filtre por país e cidade, confira o resumo e siga para o painel do evento.</p>
           </div>
-
+ 
           <div class="home-layout">
             <div class="panel search-panel">
               <label class="field">
                 <span>Evento ou local</span>
                 <input id="eventSearchInput" type="search" placeholder="Ex.: Rio de Janeiro, Fan Zone, Toronto" autocomplete="off" />
               </label>
-
+ 
               <div class="form-grid">
                 <label class="field">
                   <span>País</span>
@@ -172,26 +172,26 @@
                   <select id="homeCitySelect"></select>
                 </label>
               </div>
-
+ 
               <div class="quick-stats" id="homeQuickStats"></div>
             </div>
-
+ 
             <aside class="panel selected-event-panel" id="selectedEventSummary"></aside>
           </div>
-
+ 
           <div class="section-bar">
             <h2>Eventos disponíveis</h2>
             <span id="eventCountLabel"></span>
           </div>
           <div class="card-grid event-grid" id="eventList"></div>
         </section>
-
+ 
         <section class="screen" id="screen-country" data-screen="country">
           <div class="screen-heading">
             <span class="eyebrow">Filtro geográfico</span>
             <h1>País, cidade e evento</h1>
           </div>
-
+ 
           <div class="country-layout">
             <div class="panel">
               <div class="country-buttons" id="countryButtons"></div>
@@ -201,14 +201,14 @@
               <div class="city-list" id="cityList"></div>
             </div>
           </div>
-
+ 
           <div class="section-bar">
             <h2>Eventos filtrados</h2>
             <span id="countryEventCountLabel"></span>
           </div>
           <div class="card-grid" id="countryEventList"></div>
         </section>
-
+ 
         <section class="screen" id="screen-dashboard" data-screen="dashboard">
           <div class="screen-heading">
             <span class="eyebrow">Visão geral</span>
@@ -216,19 +216,19 @@
           </div>
           <div class="dashboard-layout" id="dashboardContent"></div>
         </section>
-
+ 
         <section class="screen" id="screen-map" data-screen="map">
           <div class="screen-heading">
             <span class="eyebrow">Mapa interativo</span>
             <h1>Camadas e pontos de interesse</h1>
           </div>
-
+ 
           <div class="map-layout">
             <aside class="panel map-controls">
               <h2>Camadas</h2>
               <div id="layerControls"></div>
             </aside>
-
+ 
             <div class="map-stack">
               <div class="map-toolbar">
                 <span id="mapEventLabel"></span>
@@ -236,17 +236,17 @@
               </div>
               <div class="map-canvas" id="mapCanvas" aria-label="Mapa simulado do evento"></div>
             </div>
-
+ 
             <aside class="panel poi-details" id="poiDetails"></aside>
           </div>
         </section>
-
+ 
         <section class="screen" id="screen-routes" data-screen="routes">
           <div class="screen-heading">
             <span class="eyebrow">Roteirização</span>
             <h1>Rotas e navegação</h1>
           </div>
-
+ 
           <div class="routes-layout">
             <form class="panel route-form" id="routeForm">
               <label class="field">
@@ -270,7 +270,7 @@
             <div id="routeResult"></div>
           </div>
         </section>
-
+ 
         <section class="screen" id="screen-recommendations" data-screen="recommendations">
           <div class="screen-heading">
             <span class="eyebrow">Sugestões contextuais</span>
@@ -279,7 +279,7 @@
           <div class="context-strip" id="contextStrip"></div>
           <div class="card-grid recommendations-grid" id="recommendationList"></div>
         </section>
-
+ 
         <section class="screen" id="screen-itinerary" data-screen="itinerary">
           <div class="screen-heading">
             <span class="eyebrow">Pré-evento</span>
@@ -302,7 +302,7 @@
             </div>
           </div>
         </section>
-
+ 
         <section class="screen" id="screen-edit" data-screen="edit">
           <div class="screen-heading">
             <span class="eyebrow">Edição manual</span>
@@ -310,7 +310,7 @@
           </div>
           <div id="itineraryEditor"></div>
         </section>
-
+ 
         <section class="screen" id="screen-final" data-screen="final">
           <div class="screen-heading">
             <span class="eyebrow">Resumo final</span>
@@ -318,7 +318,7 @@
           </div>
           <div id="finalItinerary"></div>
         </section>
-
+ 
         <section class="screen" id="screen-ratings" data-screen="ratings">
           <div class="screen-heading">
             <span class="eyebrow">Feedback</span>
@@ -343,7 +343,7 @@
             </div>
           </div>
         </section>
-
+ 
         <section class="screen" id="screen-notifications" data-screen="notifications">
           <div class="screen-heading">
             <span class="eyebrow">Tempo real</span>
@@ -351,13 +351,13 @@
           </div>
           <div class="notification-layout" id="notificationList"></div>
         </section>
-
+ 
         <section class="screen" id="screen-logic" data-screen="logic">
           <div class="screen-heading">
             <span class="eyebrow">Sobre a lógica do sistema</span>
             <h1>Regras simples que tornam o front inteligente</h1>
           </div>
-
+ 
           <div class="logic-layout">
             <article class="logic-card">
               <span class="logic-icon weather-icon"></span>
@@ -380,7 +380,7 @@
               <p>Filtra POIs, alertas, rotas e recomendações pela cidade-sede.</p>
             </article>
           </div>
-
+ 
           <div class="state-showcase">
             <article class="panel">
               <h2>Skeleton loading</h2>
@@ -394,7 +394,7 @@
             <article class="error-state">Estado de erro: falha simulada ao buscar dados externos.</article>
           </div>
         </section>
-
+ 
         <section class="screen" id="screen-audit" data-screen="audit">
           <div class="screen-heading">
             <span class="eyebrow">Rastreabilidade</span>
@@ -418,7 +418,7 @@
         </section>
       </main>
     </div>
-
+ 
     <div class="floating-actions" aria-label="Ações rápidas">
       <button class="floating-action" type="button" data-screen-target="map" aria-label="Abrir mapa">
         <span class="line-icon icon-map"></span>
@@ -437,9 +437,9 @@
         <span>Roteiro</span>
       </button>
     </div>
-
+ 
     <div class="toast-region" id="toastRegion" aria-live="polite"></div>
-
+ 
     <div class="modal-backdrop is-visible" id="consentModal" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
       <div class="modal">
         <span class="eyebrow">Privacidade</span>
@@ -451,7 +451,7 @@
         </div>
       </div>
     </div>
-
+ 
     <div class="modal-backdrop" id="ratingModal" role="dialog" aria-modal="true" aria-labelledby="ratingModalTitle">
       <div class="modal">
         <span class="eyebrow">Local selecionado</span>
@@ -463,20 +463,8 @@
         </div>
       </div>
     </div>
-
-    <div class="modal-backdrop" id="modalBackdrop">
-        <div class="modal">
-          <span class="eyebrow">Local selecionado</span>
-          <h2 id="ratingModalTitle">Avaliar ponto</h2>
-          <p id="ratingModalText"></p>
-          <div class="modal-actions">
-            <button class="button button-secondary" type="button" id="closeRatingModalButton">Fechar</button>
-            <button class="button button-primary" type="button" data-screen-target="ratings">Avaliar local</button>
-          </div>
-        </div>
-      </div>
-    </div> 
+ 
    <script type="module" src="src/js/main.js"></script>
-
+ 
   </body>
 </html>
