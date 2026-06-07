@@ -24,51 +24,70 @@ app.mount("/src", StaticFiles(directory="src"), name="static")
 async def serve_root():
     return FileResponse("index.html")
  
-
 # PROXY DE IA — chama OpenAI a partir do backend (evita CORS no browser)
 
  
 class AIRequest(BaseModel):
     prompt: str
     max_tokens: int = 800
- 
+
+async def _try_openai(prompt: str, max_tokens: int):
+    """Tenta a OpenAI. Retorna texto ou levanta exceção."""
+    from openai import AsyncOpenAI
+    client = AsyncOpenAI(api_key=os.getenv("OPENAI_KEY"))
+    resp = await client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=max_tokens,
+        temperature=0.7,
+    )
+    return resp.choices[0].message.content
+
+async def _try_gemini(prompt: str, max_tokens: int):
+    """Fallback: Google Gemini (usa a mesma chave do Google Cloud)."""
+    import httpx
+    key = (
+        os.getenv("GEMINI_KEY") or os.getenv("GOOGLE_API_KEY")
+        or os.getenv("google-maps") or os.getenv("goolgle-maps")
+        or os.getenv("GOOGLE_MAPS")
+    )
+    if not key:
+        raise RuntimeError("Sem chave para Gemini")
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + key
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.7},
+    }
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        r = await client.post(url, json=payload)
+        data = r.json()
+    if r.status_code != 200:
+        raise RuntimeError(f"Gemini HTTP {r.status_code}: {data}")
+    return data["candidates"][0]["content"]["parts"][0]["text"]
+
 @app.post("/api/v1/ai/generate")
 async def ai_generate(request: AIRequest):
     """
-    Proxy seguro para a OpenAI API.
-    O frontend envia o prompt; o backend assina com a OPENAI_KEY do .env.
+    Proxy de IA com fallback automático:
+    1) OpenAI (gpt-4o-mini)  2) Google Gemini (gemini-1.5-flash)
+    Se ambos falharem, devolve o motivo de cada um.
     """
+    errors = {}
+    # 1) OpenAI
     try:
-        from openai import AsyncOpenAI
-        client = AsyncOpenAI(api_key=os.getenv("OPENAI_KEY"))
-        response = await client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": request.prompt}],
-            max_tokens=request.max_tokens,
-            temperature=0.7,
-        )
-        return {"text": response.choices[0].message.content}
+        text = await _try_openai(request.prompt, request.max_tokens)
+        return {"text": text, "provider": "openai"}
     except Exception as e:
-        # Devolve o motivo real (chave inválida, sem crédito, etc.)
-        raise HTTPException(status_code=500, detail=f"OpenAI: {type(e).__name__}: {str(e)}")
+        errors["openai"] = f"{type(e).__name__}: {str(e)}"
 
+    # 2) Gemini (fallback)
+    try:
+        text = await _try_gemini(request.prompt, request.max_tokens)
+        return {"text": text, "provider": "gemini"}
+    except Exception as e:
+        errors["gemini"] = f"{type(e).__name__}: {str(e)}"
 
-# DIAGNÓSTICO — verifica quais chaves o servidor conseguiu carregar
-
-
-@app.get("/api/v1/diag")
-async def diag():
-    """Acesse /api/v1/diag para ver quais variáveis de ambiente foram lidas."""
-    return {"keys_loaded": api.status()}
-
-
-# EVENTOS REAIS — API-Football (Copa) + Ticketmaster (eventos paralelos)
-
-
-@app.get("/api/v1/events/real")
-async def events_real(city: str = None):
-    """Devolve jogos reais da Copa 2026 + eventos paralelos da cidade."""
-    return await api.get_real_events(city)
+    raise HTTPException(status_code=500, detail={"message": "Todos os provedores de IA falharam", "errors": errors})
  
 
 # ROTAS ORIGINAIS
