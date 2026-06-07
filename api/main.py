@@ -1,13 +1,15 @@
-from fastapi import FastAPI, Query
+import os
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from .integrations import ExternalAPI
 from .database import db
-
+ 
 app = FastAPI(title="ACES-UrbanFlow Decision Support Engine")
 api = ExternalAPI()
-
+ 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,62 +17,103 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Serve os arquivos CSS, JS e imagens da pasta src/
+ 
 app.mount("/src", StaticFiles(directory="src"), name="static")
-
-# Serve o index.html na raiz
+ 
 @app.get("/")
 async def serve_root():
     return FileResponse("index.html")
-
+ 
+# ─────────────────────────────────────────────────────────────────────────────
+# PROXY DE IA — chama OpenAI a partir do backend (evita CORS no browser)
+# ─────────────────────────────────────────────────────────────────────────────
+ 
+class AIRequest(BaseModel):
+    prompt: str
+    max_tokens: int = 800
+ 
+@app.post("/api/v1/ai/generate")
+async def ai_generate(request: AIRequest):
+    """
+    Proxy seguro para a OpenAI API.
+    O frontend envia o prompt; o backend assina com a OPENAI_KEY do .env.
+    """
+    try:
+        from openai import AsyncOpenAI
+        client = AsyncOpenAI(api_key=os.getenv("OPENAI_KEY"))
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": request.prompt}],
+            max_tokens=request.max_tokens,
+            temperature=0.7,
+        )
+        return {"text": response.choices[0].message.content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+ 
+# ─────────────────────────────────────────────────────────────────────────────
+# ROTAS ORIGINAIS
+# ─────────────────────────────────────────────────────────────────────────────
+ 
 @app.get("/api/v1/analyze-event/")
 async def analyze_event_logistics(
-    event_name: str = Query(..., description="O nome do evento ou jogo (ex: Final da Copa)"),
-    city: str = Query(..., description="A cidade-sede onde ocorre o evento"),
-    user_date: str = Query(..., description="Data atual do dispositivo do utilizador (ISO Format)")
+    event_name: str = Query(...),
+    city: str = Query(...),
+    user_date: str = Query(...),
 ):
-    """
-    Motor Central de Avaliação de Risco:
-    1. Consulta o clima real da cidade.
-    2. Submete o contexto à Inteligência Artificial.
-    3. Devolve um relatório financeiro, de tempo e de rotas para o utilizador.
-    """
-    
-    # Passo 1: Captura os dados físicos da cidade em tempo real
     weather = await api.get_weather(city)
-    
-    # Passo 2: Processamento Preditivo (Cálculo de contingência e tempo)
     risk_analysis = await api.generate_predictive_risk(
-        event_name=event_name, 
-        city=city, 
+        event_name=event_name,
+        city=city,
         weather_data=weather,
-        current_date=user_date
+        current_date=user_date,
     )
-    
-    # Passo 3: Compilação do pacote de dados para renderização no Front-End
-    response_data = {
-        "context": {
-            "event": event_name,
-            "city": city,
-            "query_date": user_date
-        },
+    return {
+        "context":     {"event": event_name, "city": city, "query_date": user_date},
         "environment": {
             "weather_main": weather.get("weather", [{}])[0].get("main", "N/A"),
-            "temperature": weather.get("main", {}).get("temp", "N/A")
+            "temperature":  weather.get("main", {}).get("temp", "N/A"),
         },
-        "intelligence": risk_analysis
+        "intelligence": risk_analysis,
     }
-    
-    # Futuramente: await db.save_event_analysis(response_data) para armazenar no histórico
-    
-    return response_data
-
+ 
 @app.get("/api/v1/discover/")
 async def discover_regional_events(city: str):
-    """
-    Cruza dados de APIs de bilhética (Ticketmaster) para encontrar
-    eventos num raio de ação que justifique planeamento prévio.
-    """
     ticketmaster_events = await api.get_ticketmaster_events(city)
     return {"source": "Ticketmaster", "data": ticketmaster_events}
+ 
+# ─────────────────────────────────────────────────────────────────────────────
+# GOOGLE MAPS — rota real + imagem estática (proxy para não expor a chave)
+# ─────────────────────────────────────────────────────────────────────────────
+ 
+@app.get("/api/v1/maps/route")
+async def maps_route(origin: str, destination: str, mode: str = "driving"):
+    """Devolve rota real (distância, duração, passos) via Google Directions API."""
+    result = await api.get_directions(origin, destination, mode)
+    if result.get("ok") and result.get("polyline"):
+        # Em vez da URL com a chave, devolve um endpoint-proxy local
+        from urllib.parse import quote
+        result["static_map"] = (
+            "/api/v1/maps/static?polyline=" + quote(result["polyline"])
+            + "&slat=" + str(result["start_location"].get("lat", ""))
+            + "&slng=" + str(result["start_location"].get("lng", ""))
+            + "&elat=" + str(result["end_location"].get("lat", ""))
+            + "&elng=" + str(result["end_location"].get("lng", ""))
+        )
+    return result
+ 
+@app.get("/api/v1/maps/static")
+async def maps_static(polyline: str, slat: str, slng: str, elat: str, elng: str):
+    """Proxy da imagem estática do Google Maps — mantém a chave no servidor."""
+    import httpx
+    from fastapi.responses import Response
+    url = api.build_static_map_url(
+        polyline,
+        {"lat": slat, "lng": slng},
+        {"lat": elat, "lng": elng},
+    )
+    if not url:
+        raise HTTPException(status_code=500, detail="Chave google-maps não configurada")
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        resp = await client.get(url)
+    return Response(content=resp.content, media_type="image/png")
