@@ -23,7 +23,7 @@ const HOST_CITIES = [
   { name: 'Monterrey',           country: 'Mexico', cc: 'MX', lat: 25.7,  lon: -100.3, stadium: 'Estadio BBVA',                matches: 5 },
 ];
  
-const ALL_EVENTS = [
+let ALL_EVENTS = [
   // Copa do Mundo 2026
   { id:'wc01', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Brasil',    away:'Argentina',     date:'2026-06-18', time:'21:00', city:'New York/New Jersey', country:'EUA',    phase:'Fase de grupos', risk:'Alto'  },
   { id:'wc02', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Portugal',  away:'Franca',        date:'2026-06-20', time:'18:00', city:'Los Angeles',          country:'EUA',    phase:'Fase de grupos', risk:'Medio' },
@@ -56,7 +56,7 @@ const ALL_EVENTS = [
   { id:'nhl1', cat:'Hoquei',    evento:'Stanley Cup Finals 2026', home:'Florida Panthers', away:'Colorado Avalanche', date:'2026-06-12', time:'20:00', city:'Miami', country:'EUA', phase:'Jogo 4', risk:'Baixo' },
 ];
  
-const CATEGORIES = ['Todos', ...new Set(ALL_EVENTS.map(e => e.cat))];
+let CATEGORIES = ["Todos", ...new Set(ALL_EVENTS.map(e => e.cat))];
 let _selectedEvent = null;
  
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -110,11 +110,31 @@ function catBadge(cat) {
 // SCREEN: EVENTOS
 // ═══════════════════════════════════════════════════════════════════════════════
  
-export function initEventsScreen() {
-  buildCategoryFilters();
+export async function initEventsScreen() {
   buildCountryFilter();
-  renderEventCards(ALL_EVENTS);
   setupEventSearch();
+ 
+  const list = document.getElementById('eventList');
+  if (list) list.innerHTML = '<div class="skeleton-card" style="grid-column:1/-1"><span></span><span></span><span></span></div>';
+ 
+  // Tenta buscar jogos REAIS da Copa (API-Football) via backend
+  try {
+    const res = await fetch('/api/v1/events/real');
+    const data = await res.json();
+    const reais = [...(data.futebol || []), ...(data.outros || [])];
+    if (reais.length) {
+      // Substitui a lista estática pelos eventos reais (mantém os "outros" tipos como complemento)
+      const naoCopa = ALL_EVENTS.filter(e => e.evento !== 'Copa do Mundo FIFA 2026');
+      ALL_EVENTS = [...reais, ...naoCopa];
+      CATEGORIES = ['Todos', ...new Set(ALL_EVENTS.map(e => e.cat))];
+    }
+  } catch (e) {
+    console.warn('[Eventos] usando lista de demonstração (API-Football indisponível):', e);
+  }
+ 
+  buildCategoryFilters();
+  renderEventCards(ALL_EVENTS);
+  filterAndRender();
 }
  
 function buildCategoryFilters() {
@@ -590,4 +610,5 @@ export async function initRecommendationsScreen() {
       +(dica ? '<div style="background:'+col+'12;border-radius:10px;padding:.4rem .7rem"><span style="font-size:.78rem;color:'+col+'">' + dica + '</span></div>' : '')
       +'</div>';
   }).join('');
+}
 }
