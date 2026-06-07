@@ -72,14 +72,23 @@ function setupConsentModal() {
     const modal      = document.getElementById('consentModal');
     const acceptBtn  = document.getElementById('acceptConsentButton');
     const declineBtn = document.getElementById('declineConsentButton');
- 
+    if (!modal) return;
+
+    const closeModal = () => modal.classList.remove('is-visible');
+
     acceptBtn?.addEventListener('click', () => {
-        modal.classList.remove('is-visible');
+        closeModal();
         navigator.geolocation?.getCurrentPosition(
             pos  => { AppState.update('userLocation', pos.coords); setUserCoords(pos.coords); },
             err  => console.warn('Localização negada:', err)
         );
     });
- 
-    declineBtn?.addEventListener('click', () => modal.classList.remove('is-visible'));
+
+    declineBtn?.addEventListener('click', closeModal);
+
+    // Blindagem: clicar no fundo escuro também fecha
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    // Blindagem: tecla Esc fecha
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 }
