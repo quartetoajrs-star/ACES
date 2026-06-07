@@ -13,6 +13,7 @@ import json
 import re
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+from .events_db import all_events as curated_events, find as curated_find
 
 load_dotenv()
 
@@ -329,7 +330,8 @@ class ExternalAPI:
         return {"ok": True, "count": len(data), "data": data}
 
     async def get_real_events(self, city=None, country_code=None, keyword=None, lat=None, lng=None):
-        result = {"futebol": [], "outros": []}
+        # Base confiável: banco curado (sempre presente)
+        result = {"curated": curated_events(), "futebol": [], "outros": []}
         wc = await self.get_world_cup_fixtures()
         if wc.get("ok"):
             result["futebol"] = wc["data"]
@@ -339,26 +341,23 @@ class ExternalAPI:
             result["outros"] = tm["data"]
         return result
 
+    def curated(self):
+        return curated_events()
+
+    def curated_find(self, eid):
+        return curated_find(eid)
+
     # ── RECOMENDAÇÕES (robusto, nunca vazio) ──────────────────────────────────
     async def get_recommendations(self, lat=None, lng=None):
-        recs = []
-        wc = await self.get_world_cup_fixtures()
-        if wc.get("ok") and wc["data"]:
-            recs += wc["data"][:3]
-        # Grandes shows de música
-        music = await self.get_ticketmaster(classification="Music", lat=lat, lng=lng, size=10)
+        # Base sempre presente: destaques do banco curado
+        recs = list(curated_events())
+        # Enriquecimento ao vivo (se disponível)
+        music = await self.get_ticketmaster(classification="Music", lat=lat, lng=lng, size=8)
         if music.get("ok"):
-            recs += music["data"][:6]
-        # Esportes em geral (se ainda pouco)
-        if len(recs) < 4:
-            sports = await self.get_ticketmaster(classification="Sports", lat=lat, lng=lng, size=8)
-            if sports.get("ok"):
-                recs += sports["data"][:5]
-        # Fallback final: eventos quaisquer próximos
-        if len(recs) < 3:
-            any_ev = await self.get_ticketmaster(lat=lat, lng=lng, size=8)
-            if any_ev.get("ok"):
-                recs += any_ev["data"][:6]
+            recs += music["data"][:5]
+        sports = await self.get_ticketmaster(classification="Sports", lat=lat, lng=lng, size=6)
+        if sports.get("ok"):
+            recs += sports["data"][:4]
         return {"ok": True, "count": len(recs), "data": recs}
 
     # ── ROTEIRO ────────────────────────────────────────────────────────────────
