@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ACES-UrbanFlow | Planeamento Inteligente</title>
     
-    <link rel="icon" type="image/png" href="src/assets/img/urbanflow-symbol.png" />
-    <link rel="apple-touch-icon" href="src/assets/img/urbanflow-symbol.png" />
+    <link rel="icon" type="image/png" href="src/assets/img/logo-urbanflow.png" />
+    <link rel="apple-touch-icon" href="src/assets/img/logo-urbanflow.png" />
     
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,7 +28,7 @@
       <header class="app-header">
         <a class="brand" href="#welcome" data-screen-target="welcome" aria-label="UrbanFlow">
           <span class="brand-mark">
-            <img src="src/assets/img/urbanflow-symbol.png" alt="" />
+            <img src="src/assets/img/logo-urbanflow.png" alt="" />
           </span>
           <span>
             <strong><span>Urban</span><span>Flow</span></strong>
@@ -53,7 +53,7 @@
       <nav class="primary-nav" id="primaryNav" aria-label="Navegação principal">
         <div class="nav-brand" aria-hidden="true">
           <span class="nav-brand-mark">
-            <img src="src/assets/img/urbanflow-symbol.png" alt="" />
+            <img src="src/assets/img/logo-urbanflow.png" alt="" />
           </span>
           <strong><span>Urban</span><span>Flow</span></strong>
         </div>
@@ -70,87 +70,53 @@
       </nav>
  
       <main class="main-content" id="mainContent">
-        <section class="screen is-active" id="screen-welcome" data-screen="welcome">
-          <div class="welcome-hero">
-            <div class="hero-brand-shape" aria-hidden="true">
-              <span class="brand-arc"></span>
-              <span class="brand-building building-one"></span>
-              <span class="brand-building building-two"></span>
-              <span class="brand-building building-three"></span>
-              <span class="brand-curve curve-one"></span>
-              <span class="brand-curve curve-two"></span>
-              <span class="brand-node"></span>
-            </div>
- 
-            <div class="welcome-copy">
-              <div class="hero-lockup" aria-label="UrbanFlow">
-                <img class="hero-logo-image" src="src/assets/img/urbanflow-logo.png" alt="UrbanFlow - Mobilidade urbana para eventos" />
+                <section class="screen is-active" id="screen-welcome" data-screen="welcome">
+          <div class="uf-hero">
+            <div class="uf-hero-bg" aria-hidden="true"></div>
+            <div class="uf-hero-overlay" aria-hidden="true"></div>
+            <div class="uf-hero-content">
+              <span class="uf-hero-eyebrow">Plataforma inteligente para</span>
+              <h1 class="uf-hero-title">Copa do Mundo<br><span>2026</span></h1>
+              <p class="uf-hero-sub">Planeje, organize e acompanhe cada detalhe dos grandes eventos. Tecnologia, dados e colaboração para entregar experiências inesquecíveis.</p>
+              <div class="uf-hero-actions">
+                <button class="button button-primary" type="button" data-screen-target="home">Planejar evento</button>
+                <button class="button button-light" type="button" data-screen-target="map">Explorar mapa</button>
               </div>
-              <span class="eyebrow">Mobilidade urbana para eventos</span>
-              <h1>Planeje chegada, rota e roteiro com mais contexto.</h1>
-              <p>O UrbanFlow organiza evento, cidade-sede, mapa, alertas, recomendações e itinerário em uma experiência mobile-first para quem está em movimento.</p>
-              <div class="hero-actions">
-                <button class="button button-primary" type="button" data-screen-target="home">Iniciar planejamento</button>
-                <button class="button button-secondary" type="button" data-screen-target="map">Ver mapa simulado</button>
-              </div>
-            </div>
- 
-            <div class="app-preview-card" aria-label="Prévia visual do UrbanFlow">
-              <div class="preview-topbar">
-                <span class="preview-brand">
-                  <span class="preview-brand-mark">
-                    <img src="src/assets/img/urbanflow-symbol.png" alt="" />
-                  </span>
-                  <strong><span>Urban</span><span>Flow</span></strong>
-                </span>
-                <span class="preview-actions" aria-hidden="true">
-                  <span class="line-icon icon-bell"></span>
-                  <span class="line-icon icon-user"></span>
-                </span>
-              </div>
-              <div class="preview-map">
-                <span class="preview-district preview-park"></span>
-                <span class="preview-district preview-water"></span>
-                <svg class="preview-road-network" viewBox="0 0 1000 640" aria-hidden="true">
-                  <path class="road-major" d="M-40 385 C150 360 310 356 470 336 S760 300 1040 310" />
-                  <path class="road-major" d="M545 -40 C578 120 615 240 670 330 S760 500 910 690" />
-                  <path class="road-secondary" d="M-30 150 C145 210 275 260 395 308 S670 376 1040 465" />
-                  <path class="road-secondary" d="M118 172 C245 148 328 132 420 122 C560 105 680 110 790 138" />
-                  <path class="road-minor" d="M112 520 C245 498 355 470 505 440 C650 410 760 454 900 500" />
-                  <path class="road-minor" d="M135 506 C225 440 300 360 430 318 C455 310 476 302 500 294" />
-                  <path class="road-minor" d="M720 80 C650 190 590 270 480 338" />
-                  <circle class="road-node" cx="470" cy="336" r="7" />
-                  <circle class="road-node" cx="670" cy="330" r="7" />
-                </svg>
-                <span class="preview-road-label preview-label-a">Av. Central</span>
-                <span class="preview-road-label preview-label-b">Acesso B</span>
-                <span class="preview-pin pin-a"></span>
-                <span class="preview-pin pin-b"></span>
-                <span class="preview-risk"></span>
-              </div>
-              <div class="preview-stats">
-                <span>Fluxo seguro</span>
-                <strong>Entrada B</strong>
+              <div class="uf-hero-stats">
+                <div class="uf-stat"><strong>16</strong><span>Cidades</span></div>
+                <div class="uf-stat"><strong>104</strong><span>Jogos</span></div>
+                <div class="uf-stat"><strong>3</strong><span>Países</span></div>
+                <div class="uf-stat"><strong>Milhões</strong><span>de torcedores</span></div>
               </div>
             </div>
           </div>
- 
-          <div class="indicator-grid">
-            <article class="indicator-card">
-              <span class="line-icon icon-map"></span>
-              <strong>Mapa preparado</strong>
-              <small>Camadas e POIs simulados para futura API.</small>
-            </article>
-            <article class="indicator-card">
-              <span class="line-icon icon-route"></span>
-              <strong>Rotas contextuais</strong>
-              <small>Tempo, distância e alternativa visual.</small>
-            </article>
-            <article class="indicator-card">
-              <span class="line-icon icon-spark"></span>
-              <strong>Recomendações</strong>
-              <small>Regras simples para clima, horário e fluxo.</small>
-            </article>
+
+          <div class="uf-section">
+            <div class="uf-section-head">
+              <h2>Eventos em destaque</h2>
+              <button class="uf-link" type="button" data-screen-target="home">Ver todos os eventos →</button>
+            </div>
+            <div class="uf-featured" id="welcomeFeatured"></div>
+          </div>
+
+          <div class="uf-section">
+            <div class="uf-section-head"><h2>Recursos da plataforma</h2></div>
+            <div class="uf-features">
+              <article class="uf-feature"><span class="line-icon icon-calendar"></span><strong>Gestão de Eventos</strong><small>Encontre e organize grandes eventos com cronograma, sessões e checklists.</small></article>
+              <article class="uf-feature"><span class="line-icon icon-map"></span><strong>Mapas Interativos</strong><small>Localize estádios e infraestrutura com mapas inteligentes e dinâmicos.</small></article>
+              <article class="uf-feature"><span class="line-icon icon-route"></span><strong>Rotas Contextuais</strong><small>Origem, destino e tempo de deslocamento em tempo real.</small></article>
+              <article class="uf-feature"><span class="line-icon icon-spark"></span><strong>Recomendações</strong><small>Sugestões de jogos, shows e atrações por vir, perto de você.</small></article>
+              <article class="uf-feature"><span class="line-icon icon-list"></span><strong>Roteiros & PDF</strong><small>Monte, edite, salve e exporte seu roteiro completo.</small></article>
+              <article class="uf-feature"><span class="line-icon icon-check"></span><strong>Multiusuário</strong><small>Cada conta com seus próprios roteiros salvos com segurança.</small></article>
+            </div>
+          </div>
+
+          <div class="uf-section">
+            <div class="uf-section-head">
+              <h2>Próximos eventos</h2>
+              <button class="uf-link" type="button" data-screen-target="recommendations">Ver recomendações →</button>
+            </div>
+            <div class="uf-upcoming" id="welcomeUpcoming"></div>
           </div>
         </section>
  
