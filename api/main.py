@@ -119,6 +119,21 @@ async def analyze_event_logistics(
 async def discover_regional_events(city: str):
     ticketmaster_events = await api.get_ticketmaster_events(city)
     return {"source": "Ticketmaster", "data": ticketmaster_events}
+
+
+# DIAGNÓSTICO — quais chaves o servidor conseguiu carregar (sem expor valores)
+
+@app.get("/api/v1/diag")
+async def diag():
+    return {"keys_loaded": api.status()}
+
+
+# EVENTOS REAIS — API-Football (Copa) + Ticketmaster (eventos paralelos)
+
+@app.get("/api/v1/events/real")
+async def events_real(city: str = None):
+    return await api.get_real_events(city)
+
  
 
 # GOOGLE MAPS — rota real + imagem estática (proxy para não expor a chave)
