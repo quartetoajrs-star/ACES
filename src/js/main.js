@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAI();
   requestInitialLocation();
   refreshAccountUI();
+  // Popula o hero da tela inicial (já visível)
+  loadAI().then(ai => ai?.initWelcomeScreen?.());
 });
  
 function requestInitialLocation() {
@@ -64,6 +66,7 @@ async function initScreenAI(screenId) {
     if (screenId === 'itinerary') ai.initItineraryScreen?.();
     if (screenId === 'final')     ai.renderFinal?.();
     if (screenId === 'map')       ai.initMapScreen?.();
+    if (screenId === 'welcome')   ai.initWelcomeScreen?.();
     if (!initialized.has(screenId)) {
       initialized.add(screenId);
       switch (screenId) {
