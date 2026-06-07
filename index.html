@@ -16,6 +16,12 @@
     <link rel="stylesheet" href="src/css/layout.css" />
     <link rel="stylesheet" href="src/css/components.css" />
     <link rel="stylesheet" href="src/css/pages.css" />
+ 
+    <!-- Leaflet (mapa interativo com zoom/arraste) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <!-- jsPDF (exportar roteiro em PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -163,13 +169,15 @@
               </label>
  
               <div class="form-grid">
-                <label class="field">
+                <label class="field" style="position:relative">
                   <span>País</span>
-                  <select id="homeCountrySelect"></select>
+                  <input id="homeCountryInput" type="text" placeholder="Digite qualquer país..." autocomplete="off" />
+                  <div class="ac-list" id="homeCountryAC"></div>
                 </label>
-                <label class="field">
-                  <span>Cidade-sede</span>
-                  <select id="homeCitySelect"></select>
+                <label class="field" style="position:relative">
+                  <span>Cidade</span>
+                  <input id="homeCityInput" type="text" placeholder="Digite qualquer cidade..." autocomplete="off" />
+                  <div class="ac-list" id="homeCityAC"></div>
                 </label>
               </div>
  
@@ -249,13 +257,15 @@
  
           <div class="routes-layout">
             <form class="panel route-form" id="routeForm">
-              <label class="field">
+              <label class="field" style="position:relative">
                 <span>Origem</span>
-                <input id="routeOriginInput" type="text" value="Minha localização" />
+                <input id="routeOriginInput" type="text" placeholder="Seu ponto de partida (qualquer lugar)" autocomplete="off" />
+                <div class="ac-list" id="routeOriginAC"></div>
               </label>
-              <label class="field">
+              <label class="field" style="position:relative">
                 <span>Destino</span>
-                <select id="routeDestinationSelect"></select>
+                <input id="routeDestinationInput" type="text" placeholder="Estádio, cidade ou endereço de destino" autocomplete="off" />
+                <div class="ac-list" id="routeDestinationAC"></div>
               </label>
               <label class="field">
                 <span>Deslocamento</span>
