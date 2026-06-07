@@ -466,5 +466,25 @@
  
    <script type="module" src="src/js/main.js"></script>
  
+   <!-- Fallback de segurança: garante que o modal de consentimento sempre feche,
+        mesmo que o módulo principal (main.js) falhe ao carregar. -->
+   <script>
+     (function () {
+       function closeConsent() {
+         var m = document.getElementById('consentModal');
+         if (m) m.classList.remove('is-visible');
+       }
+       document.addEventListener('click', function (e) {
+         var t = e.target.closest('#acceptConsentButton, #declineConsentButton');
+         if (t) closeConsent();
+         var modal = document.getElementById('consentModal');
+         if (modal && e.target === modal) closeConsent();
+       });
+       document.addEventListener('keydown', function (e) {
+         if (e.key === 'Escape') closeConsent();
+       });
+     })();
+   </script>
+ 
   </body>
 </html>
