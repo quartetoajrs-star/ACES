@@ -1,3 +1,5 @@
+import { userKey } from './auth.js';
+ 
 let WC_EVENTS = [];        // jogos da Copa (cache)
 let LAST_EVENTS = [];      // eventos renderizados atualmente
 let _userCoords = null;    // GPS do usuário
@@ -148,6 +150,7 @@ async function loadEvents() {
   const params = new URLSearchParams();
   if (city) params.set('city', city);
   if (keyword) params.set('keyword', keyword);
+  params.set('years_ahead', '2');
   const tm = await getJSON('/api/v1/events/ticketmaster?' + params.toString());
   const tmEvents = tm?.data || [];
  
@@ -157,7 +160,16 @@ async function loadEvents() {
   if (keyword) wcFiltered = wcFiltered.filter(e =>
     [e.home, e.away, e.title].some(v => (v||'').toLowerCase().includes(keyword.toLowerCase())));
  
-  LAST_EVENTS = [...wcFiltered, ...tmEvents];
+  // Janela: somente eventos de hoje até 2 anos à frente (data do navegador)
+  const today = new Date(); today.setHours(0,0,0,0);
+  const limit = new Date(today); limit.setFullYear(limit.getFullYear() + 2);
+  const inWindow = (e) => {
+    if (!e.date) return true; // sem data: mantém (ex.: fase a definir)
+    const d = new Date(e.date + 'T00:00:00');
+    return d >= today && d <= limit;
+  };
+ 
+  LAST_EVENTS = [...wcFiltered, ...tmEvents].filter(inWindow);
   renderEventCards(LAST_EVENTS);
 }
  
@@ -329,13 +341,13 @@ function openEditor() {
  
 // ── Persistência (localStorage) ───────────────────────────────────────────────
 function loadSaved() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(userKey(STORAGE_KEY)) || '[]'); } catch { return []; }
 }
 function saveItinerary(it) {
   const all = loadSaved();
   const rec = { ...it, savedAt: Date.now(), id: 'it' + Date.now() };
   all.unshift(rec);
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(all.slice(0, 30))); } catch {}
+  try { localStorage.setItem(userKey(STORAGE_KEY), JSON.stringify(all.slice(0, 30))); } catch {}
   renderSavedList();
   renderFinal();
 }
@@ -365,8 +377,10 @@ export function renderSavedList() {
   host.querySelectorAll('[data-del]').forEach(b =>
     b.addEventListener('click', () => {
       const all2 = loadSaved().filter(x => x.id !== b.dataset.del);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(all2));
+      localStorage.setItem(userKey(STORAGE_KEY), JSON.stringify(all2));
+      if (_currentItinerary && _currentItinerary.id === b.dataset.del) _currentItinerary = null;
       renderSavedList(); renderFinal();
+      toast('Roteiro excluído.');
     }));
 }
  
@@ -393,12 +407,24 @@ export function renderFinal() {
   }
   host.innerHTML = all.map(it =>
     '<div class="panel" style="padding:1rem;margin-bottom:.8rem">'
-    + '<h3 style="margin:0 0 .3rem;font-size:1rem">'+(it.event?.title||'Roteiro')+'</h3>'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">'
+    +   '<h3 style="margin:0 0 .3rem;font-size:1rem">'+(it.event?.title||'Roteiro')+'</h3>'
+    +   '<button class="button button-secondary" data-delfinal="'+it.id+'" style="padding:.3rem .65rem">✕ Excluir</button>'
+    + '</div>'
     + '<p style="font-size:.8rem;color:var(--muted);margin:0 0 .6rem">📅 '+(it.event?.date||'')+' · 📍 '+(it.event?.city||'')+' · 💰 '+(it.custo_medio||'')+'</p>'
     + '<div style="display:grid;gap:.3rem">'
     + (it.agenda||[]).map(a => '<div style="font-size:.84rem;display:flex;gap:.6rem"><span style="font-weight:700;min-width:48px">'+a.hora+'</span><span>'+a.atividade+'</span></div>').join('')
     + '</div></div>'
   ).join('');
+ 
+  host.querySelectorAll('[data-delfinal]').forEach(b =>
+    b.addEventListener('click', () => {
+      const all2 = loadSaved().filter(x => x.id !== b.dataset.delfinal);
+      localStorage.setItem(userKey(STORAGE_KEY), JSON.stringify(all2));
+      if (_currentItinerary && _currentItinerary.id === b.dataset.delfinal) _currentItinerary = null;
+      renderFinal(); renderSavedList();
+      toast('Roteiro excluído.');
+    }));
 }
  
 // ── Exportar PDF (jsPDF) ──────────────────────────────────────────────────────
@@ -520,15 +546,32 @@ export function initRoutesScreen() {
   const oi = document.getElementById('routeOriginInput');
   if (oi && !oi.value && _userCoords) oi.value = 'Minha localização (GPS)';
  
-  attachAutocomplete('routeOriginInput', 'routeOriginAC', 'geocode', (it) => { _routeOrigin = it.label; });
-  attachAutocomplete('routeDestinationInput', 'routeDestinationAC', 'geocode', (it) => { _routeDest = it.label; });
+  // Guarda as coordenadas escolhidas no autocomplete (mais preciso que geocodar texto)
+  attachAutocomplete('routeOriginInput', 'routeOriginAC', 'geocode', (it) => {
+    _routeOrigin = (it.lat != null && it.lng != null) ? (it.lat + ',' + it.lng) : it.label;
+  });
+  attachAutocomplete('routeDestinationInput', 'routeDestinationAC', 'geocode', (it) => {
+    _routeDest = (it.lat != null && it.lng != null) ? (it.lat + ',' + it.lng) : it.label;
+  });
+ 
+  // Origem: ao focar, se for o texto GPS, seleciona tudo para facilitar troca
+  if (oi && !oi.dataset.bound) {
+    oi.dataset.bound = '1';
+    oi.addEventListener('focus', () => { if (/minha localiza/i.test(oi.value)) oi.select(); });
+    oi.addEventListener('input', () => { _routeOrigin = null; }); // texto manual → será geocodado
+  }
  
   // Pré-preenche destino se veio de um evento
   if (_selectedEvent) {
     const di = document.getElementById('routeDestinationInput');
     if (di && !di.value) {
-      di.value = (_selectedEvent.venue ? _selectedEvent.venue + ', ' : '') + (_selectedEvent.city || '');
-      _routeDest = di.value;
+      if (_selectedEvent.lat != null && _selectedEvent.lng != null) {
+        di.value = (_selectedEvent.venue || _selectedEvent.city || 'Destino');
+        _routeDest = _selectedEvent.lat + ',' + _selectedEvent.lng;
+      } else {
+        di.value = (_selectedEvent.venue ? _selectedEvent.venue + ', ' : '') + (_selectedEvent.city || '');
+        _routeDest = di.value;
+      }
     }
   }
  
@@ -558,28 +601,49 @@ async function generateRoute() {
   const route = await getJSON('/api/v1/maps/route?' + params.toString());
  
   if (route && route.ok) {
-    const mapImg = route.static_map
-      ? '<img src="'+route.static_map+'" alt="Rota" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block" loading="lazy"/>' : '';
     const steps = (route.steps||[]).slice(0,7).map((s,i) =>
       '<div style="display:flex;gap:.6rem;padding:.45rem 0;border-bottom:1px solid #eee">'
       + '<span style="flex:0 0 22px;height:22px;border-radius:50%;background:#15803d;color:#fff;font-size:.72rem;font-weight:800;display:grid;place-items:center">'+(i+1)+'</span>'
-      + '<div><p style="font-size:.82rem;margin:0">'+s.instrucao+'</p><span style="font-size:.74rem;color:var(--muted)">'+s.distancia+(s.duracao?' · '+s.duracao:'')+'</span></div></div>'
+      + '<div><p style="font-size:.82rem;margin:0">'+s.instrucao+'</p><span style="font-size:.74rem;color:var(--muted)">'+s.distancia+'</span></div></div>'
     ).join('');
     out.innerHTML =
-      '<div style="display:grid;gap:.6rem;margin-top:.75rem"><div class="panel" style="padding:0;overflow:hidden">'+mapImg
-      + '<div style="padding:.9rem"><span style="font-size:.7rem;font-weight:700;color:#15803d">Rota — Google Maps</span>'
-      + '<h3 style="margin:.3rem 0;font-size:1rem">'+route.origin_address+' → '+route.destination_address+'</h3>'
-      + '<div style="display:flex;gap:1rem;flex-wrap:wrap"><span style="font-size:.86rem">⏱ <strong>'+route.duration+'</strong></span><span style="font-size:.86rem">📏 <strong>'+route.distance+'</strong></span></div></div></div>'
+      '<div style="display:grid;gap:.6rem;margin-top:.75rem">'
+      + '<div class="panel" style="padding:.9rem"><span style="font-size:.7rem;font-weight:700;color:#15803d">Rota — OpenStreetMap</span>'
+      + '<h3 style="margin:.3rem 0;font-size:1rem">'+route.origin_address.split(',')[0]+' → '+route.destination_address.split(',')[0]+'</h3>'
+      + '<div style="display:flex;gap:1rem;flex-wrap:wrap"><span style="font-size:.86rem">⏱ <strong>'+route.duration+'</strong></span><span style="font-size:.86rem">📏 <strong>'+route.distance+'</strong></span></div></div>'
+      + '<div id="routeMiniMap" style="height:280px;border-radius:12px;overflow:hidden;border:1px solid var(--line)"></div>'
       + (steps?'<div class="panel" style="padding:.9rem"><strong style="font-size:.82rem">Passo a passo</strong>'+steps+'</div>':'')
       + '</div>';
+    drawRouteMap(route);
     return;
   }
  
-  // Fallback IA (estimativa) quando o Google falha
+  // Fallback IA (estimativa) quando o roteamento falha
   const est = await askAIJSON('Estime a rota de "'+origin+'" até "'+dest+'" de '+mode+'. JSON: {"tempo":"X","distancia":"~Y km","dica":"..."}');
   out.innerHTML = est
     ? '<div class="panel" style="padding:.9rem;margin-top:.75rem"><span style="font-size:.7rem;color:var(--muted)">Estimativa</span><h3 style="margin:.3rem 0">'+origin+' → '+dest+'</h3><p style="font-size:.86rem">⏱ '+est.tempo+' · 📏 '+est.distancia+'</p><p style="font-size:.84rem;color:var(--muted)">'+(est.dica||'')+'</p></div>'
-    : errBox('Não foi possível gerar a rota. Verifique a chave do Google Maps.');
+    : errBox('Não foi possível gerar a rota. Tente endereços mais específicos.');
+}
+ 
+let _routeMap = null;
+function drawRouteMap(route) {
+  const host = document.getElementById('routeMiniMap');
+  if (!host || typeof L === 'undefined') return;
+  if (_routeMap) { _routeMap.remove(); _routeMap = null; }
+  _routeMap = L.map(host);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(_routeMap);
+  const geo = route.geometry || [];
+  const s = route.start_location, e = route.end_location;
+  if (geo.length) {
+    const line = L.polyline(geo, { color: '#1a73e8', weight: 5 }).addTo(_routeMap);
+    _routeMap.fitBounds(line.getBounds(), { padding: [30, 30] });
+  } else if (s && e) {
+    _routeMap.setView([s.lat, s.lng], 12);
+  }
+  if (s) L.marker([s.lat, s.lng]).addTo(_routeMap).bindPopup('Origem');
+  if (e) L.marker([e.lat, e.lng]).addTo(_routeMap).bindPopup('Destino');
+  setTimeout(() => _routeMap.invalidateSize(), 120);
 }
  
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -596,20 +660,14 @@ export async function initRecommendationsScreen() {
     + '<span class="context-pill" style="padding:.35rem .8rem;border-radius:999px;font-size:.8rem;font-weight:700">🌎 Eventos por vir</span>';
   list.innerHTML = skeleton(true);
  
-  // Copa: 3 jogos de destaque
-  if (!WC_EVENTS.length) {
-    const wc = await getJSON('/api/v1/events/worldcup');
-    WC_EVENTS = wc?.data || [];
+  // Endpoint robusto: combina Copa + shows + esportes, com fallback no servidor
+  const near = _userCoords ? ('?lat='+_userCoords.latitude.toFixed(3)+'&lng='+_userCoords.longitude.toFixed(3)) : '';
+  const res = await getJSON('/api/v1/recommendations' + near);
+  const recs = res?.data || [];
+  if (!recs.length) {
+    list.innerHTML = errBox('Sem recomendações no momento. Tente novamente em instantes.');
+    return;
   }
-  const destaque = WC_EVENTS.slice(0, 3);
- 
-  // Ticketmaster: grandes shows de música (próximos)
-  const near = _userCoords ? ('&lat='+_userCoords.latitude.toFixed(3)+'&lng='+_userCoords.longitude.toFixed(3)) : '';
-  const music = await getJSON('/api/v1/events/ticketmaster?classification=Music&keyword=' + near);
-  const shows = (music?.data || []).slice(0, 6);
- 
-  const recs = [...destaque, ...shows];
-  if (!recs.length) { list.innerHTML = errBox('Falha ao carregar recomendações.'); return; }
  
   list.innerHTML = recs.map(e => {
     const col = catColor(e.cat);
