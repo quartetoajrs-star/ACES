@@ -18,6 +18,13 @@ class ExternalAPI:
         self.ticketmaster_key = os.getenv("TICKETMASTER_KEY")
         self.weather_key = os.getenv("OPENWEATHER_KEY")
         self.openai_key = os.getenv("OPENAI_KEY")
+        # Aceita variações comuns do nome da variável de ambiente
+        self.maps_key = (
+            os.getenv("google-maps")
+            or os.getenv("GOOGLE_MAPS")
+            or os.getenv("GOOGLE_MAPS_KEY")
+            or os.getenv("GOOGLE_MAPS_API_KEY")
+        )
 
     async def get_weather(self, city: str):
         """Busca a previsão meteorológica operacional atual para a cidade-sede."""
@@ -88,3 +95,83 @@ class ExternalAPI:
                 return {"error": f"Falha na IA HTTP: {response.status_code}"}
             except Exception as e:
                 return {"error": f"Exceção na análise preditiva: {str(e)}"}
+    async def get_directions(self, origin: str, destination: str, mode: str = "driving"):
+        """
+        Consulta a Google Maps Directions API e devolve rota real:
+        distância, duração, passos e polilinha para desenhar o mapa.
+        """
+        if not self.maps_key:
+            return {"ok": False, "error": "Chave google-maps não configurada no ambiente."}
+ 
+        mode_map = {
+            "drive": "driving", "driving": "driving",
+            "walking": "walking", "transit": "transit", "bicycling": "bicycling",
+        }
+        g_mode = mode_map.get(mode, "driving")
+ 
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            try:
+                resp = await client.get(
+                    "https://maps.googleapis.com/maps/api/directions/json",
+                    params={
+                        "origin": origin,
+                        "destination": destination,
+                        "mode": g_mode,
+                        "language": "pt-BR",
+                        "key": self.maps_key,
+                    },
+                )
+                data = resp.json()
+            except Exception as e:
+                return {"ok": False, "error": f"Exceção Google Maps: {str(e)}"}
+ 
+        status = data.get("status")
+        if status != "OK" or not data.get("routes"):
+            return {
+                "ok": False,
+                "status": status,
+                "error": data.get("error_message", f"Rota não encontrada (status: {status})"),
+            }
+ 
+        route = data["routes"][0]
+        leg = route["legs"][0]
+ 
+        import re
+        def strip_html(t):
+            return re.sub(r"<[^>]+>", " ", t or "").replace("  ", " ").strip()
+ 
+        steps = [
+            {
+                "instrucao": strip_html(s.get("html_instructions", "")),
+                "distancia": s.get("distance", {}).get("text", ""),
+                "duracao": s.get("duration", {}).get("text", ""),
+            }
+            for s in leg.get("steps", [])[:10]
+        ]
+ 
+        return {
+            "ok": True,
+            "mode": g_mode,
+            "origin_address": leg.get("start_address", origin),
+            "destination_address": leg.get("end_address", destination),
+            "distance": leg.get("distance", {}).get("text", "N/A"),
+            "duration": leg.get("duration", {}).get("text", "N/A"),
+            "start_location": leg.get("start_location", {}),
+            "end_location": leg.get("end_location", {}),
+            "polyline": route.get("overview_polyline", {}).get("points", ""),
+            "steps": steps,
+        }
+ 
+    def build_static_map_url(self, polyline: str, start: dict, end: dict):
+        """Monta a URL da imagem estática do Google Maps com a rota desenhada."""
+        if not self.maps_key:
+            return None
+        s = f"{start.get('lat')},{start.get('lng')}"
+        e = f"{end.get('lat')},{end.get('lng')}"
+        return (
+            "https://maps.googleapis.com/maps/api/staticmap?size=640x320&scale=2&language=pt-BR"
+            f"&markers=color:0x15803d|label:A|{s}"
+            f"&markers=color:0xdc2626|label:B|{e}"
+            f"&path=color:0x1a73e8C8|weight:5|enc:{polyline}"
+            f"&key={self.maps_key}"
+        )
