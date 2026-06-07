@@ -1,6 +1,7 @@
 import { userKey } from './auth.js';
  
 let WC_EVENTS = [];        // jogos da Copa (cache)
+let CATALOG = [];          // catálogo curado (cache)
 let LAST_EVENTS = [];      // eventos renderizados atualmente
 let _userCoords = null;    // GPS do usuário
 let _selectedEvent = null; // evento escolhido para roteiro
@@ -138,41 +139,47 @@ export async function initEventsScreen() {
 async function loadEvents() {
   const list = document.getElementById('eventList');
   if (list) list.innerHTML = skeleton(true);
- 
+
   const city    = (document.getElementById('homeCityInput')?.value || '').split(',')[0].trim();
+  const country = (document.getElementById('homeCountryInput')?.value || '').split(',')[0].trim();
   const keyword = (document.getElementById('eventSearchInput')?.value || '').trim();
- 
-  // Busca Copa (cache) + Ticketmaster filtrado
-  if (!WC_EVENTS.length) {
-    const wc = await getJSON('/api/v1/events/worldcup');
-    WC_EVENTS = wc?.data || [];
+
+  // Catálogo curado (base sempre presente)
+  if (!CATALOG.length) {
+    const cat = await getJSON('/api/v1/events/catalog');
+    CATALOG = cat?.data || [];
   }
+
+  // Ticketmaster ao vivo (enriquecimento)
   const params = new URLSearchParams();
   if (city) params.set('city', city);
   if (keyword) params.set('keyword', keyword);
   params.set('years_ahead', '2');
   const tm = await getJSON('/api/v1/events/ticketmaster?' + params.toString());
   const tmEvents = tm?.data || [];
- 
-  // Filtra Copa por cidade/keyword se informado
-  let wcFiltered = WC_EVENTS;
-  if (city) wcFiltered = wcFiltered.filter(e => (e.city||'').toLowerCase().includes(city.toLowerCase()));
-  if (keyword) wcFiltered = wcFiltered.filter(e =>
-    [e.home, e.away, e.title].some(v => (v||'').toLowerCase().includes(keyword.toLowerCase())));
- 
-  // Janela: somente eventos de hoje até 2 anos à frente (data do navegador)
+
+  // Filtro por texto (catálogo)
+  const q = (s) => (s || '').toLowerCase();
+  let curated = CATALOG.filter(e => {
+    const okC = !country || q(e.country).includes(q(country)) || q(e.city).includes(q(country));
+    const okCity = !city || q(e.city).includes(q(city));
+    const okKw = !keyword || [e.title, e.evento, e.cat, e.city, e.country].some(v => q(v).includes(q(keyword)));
+    return okC && okCity && okKw;
+  });
+
+  // Janela de 2 anos para os eventos ao vivo (curados podem ter sessões futuras)
   const today = new Date(); today.setHours(0,0,0,0);
   const limit = new Date(today); limit.setFullYear(limit.getFullYear() + 2);
   const inWindow = (e) => {
-    if (!e.date) return true; // sem data: mantém (ex.: fase a definir)
+    if (!e.date) return true;
     const d = new Date(e.date + 'T00:00:00');
     return d >= today && d <= limit;
   };
- 
-  LAST_EVENTS = [...wcFiltered, ...tmEvents].filter(inWindow);
+
+  LAST_EVENTS = [...curated, ...tmEvents.filter(inWindow)];
   renderEventCards(LAST_EVENTS);
 }
- 
+
 function renderEventCards(events) {
   const list = document.getElementById('eventList');
   const label = document.getElementById('eventCountLabel');
@@ -182,31 +189,136 @@ function renderEventCards(events) {
     list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted)">Nenhum evento encontrado. Tente outra cidade ou termo.</div>';
     return;
   }
-  list.innerHTML = events.slice(0, 30).map(e => {
+  list.innerHTML = events.slice(0, 40).map(e => {
     const col = catColor(e.cat);
+    const nSessions = (e.sessions || []).length;
+    const btnLabel = nSessions ? ('Ver ' + nSessions + ' atrações') : 'Criar roteiro';
     return '<div class="card event-card" style="display:flex;flex-direction:column;gap:.5rem">'
       + '<div style="display:flex;justify-content:space-between;align-items:center">'
       +   badge(e.cat || 'Evento', col)
-      +   (e.phase ? '<span style="font-size:.72rem;color:var(--muted)">'+e.phase+'</span>' : '')
+      +   (nSessions ? '<span style="font-size:.72rem;font-weight:700;color:'+col+'">'+nSessions+' atrações</span>'
+                     : (e.phase ? '<span style="font-size:.72rem;color:var(--muted)">'+e.phase+'</span>' : ''))
       + '</div>'
       + '<h3 style="font-size:1rem;margin:0;line-height:1.3">'+(e.title || e.evento)+'</h3>'
+      + (e.descricao ? '<p style="font-size:.8rem;color:var(--muted);margin:0;line-height:1.5">'+e.descricao+'</p>' : '')
       + '<div style="font-size:.82rem;color:var(--muted);line-height:1.7">'
       +   '<div>📍 '+(e.city||'')+(e.country?', '+e.country:'')+'</div>'
       +   (e.venue ? '<div>🏟 '+e.venue+'</div>' : '')
-      +   (e.date ? '<div>📅 '+e.date+(e.time?' · '+e.time:'')+'</div>' : '')
+      +   (e.date ? '<div>📅 '+(nSessions?'a partir de ':'')+e.date+(e.time&&!nSessions?' · '+e.time:'')+'</div>' : '')
       + '</div>'
-      + '<button class="button button-primary" style="width:100%;margin-top:auto" data-evid="'+e.id+'">Criar roteiro</button>'
+      + '<button class="button button-primary" style="width:100%;margin-top:auto" data-evid="'+e.id+'">'+btnLabel+'</button>'
       + '</div>';
   }).join('');
- 
+
   list.querySelectorAll('[data-evid]').forEach(btn => {
     btn.addEventListener('click', () => {
       const ev = events.find(x => x.id === btn.dataset.evid);
-      if (ev) createItinerary(ev);
+      if (!ev) return;
+      if ((ev.sessions || []).length) openSessionPicker(ev);
+      else createItinerary(ev);
     });
   });
 }
+
+// ── Seletor de sessões (Copa = vários jogos; festival = vários dias) ──────────
+function openSessionPicker(ev) {
+  const panel = document.getElementById('selectedEventSummary');
+  if (!panel) { createItinerary(ev); return; }
+  const col = catColor(ev.cat);
+  panel.innerHTML =
+    '<div style="padding:1rem">'
+    + '<button id="backToEvents" class="button button-secondary" style="padding:.3rem .7rem;margin-bottom:.6rem">← Voltar</button>'
+    + '<span class="eyebrow">'+(ev.cat||'Evento')+'</span>'
+    + '<h3 style="margin:.3rem 0 .2rem">'+(ev.title||ev.evento)+'</h3>'
+    + '<p style="font-size:.82rem;color:var(--muted);margin:0 0 .8rem">Escolha a atração para montar seu roteiro:</p>'
+    + '<div style="display:grid;gap:.45rem;max-height:60vh;overflow:auto">'
+    + ev.sessions.map(s =>
+        '<button class="session-pick" data-sid="'+s.id+'" style="text-align:left;border:1px solid var(--line);border-radius:10px;padding:.6rem .8rem;background:#fff;cursor:pointer">'
+        + '<div style="display:flex;justify-content:space-between;gap:.5rem;align-items:center">'
+        + '<strong style="font-size:.85rem">'+s.label+'</strong>'
+        + '<span style="font-size:.72rem;font-weight:700;color:'+col+'">'+(s.phase||'')+'</span></div>'
+        + '<div style="font-size:.78rem;color:var(--muted);margin-top:.2rem">📅 '+s.date+(s.time?' · '+s.time:'')+' · 📍 '+(s.venue||s.city)+'</div>'
+        + '</button>'
+      ).join('')
+    + '</div></div>';
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('backToEvents')?.addEventListener('click', () => { panel.innerHTML = ''; });
+  panel.querySelectorAll('.session-pick').forEach(b =>
+    b.addEventListener('click', async () => {
+      // Busca a sessão "cheia" no backend e monta o roteiro
+      const full = await getJSON('/api/v1/events/find?id=' + encodeURIComponent(b.dataset.sid));
+      if (full && !full.error) createItinerary(full);
+      else {
+        const s = ev.sessions.find(x => x.id === b.dataset.sid);
+        createItinerary({ ...ev, ...s, title: ev.evento + ' — ' + s.label, sessions: [] });
+      }
+    }));
+}
  
+// ═══════════════════════════════════════════════════════════════════════════════
+// SCREEN: BOAS-VINDAS (hero vivo — destaques e próximos eventos)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export async function initWelcomeScreen() {
+  const featured = document.getElementById('welcomeFeatured');
+  const upcoming = document.getElementById('welcomeUpcoming');
+  if (!featured && !upcoming) return;
+
+  if (!CATALOG.length) {
+    const cat = await getJSON('/api/v1/events/catalog');
+    CATALOG = cat?.data || [];
+  }
+
+  // Destaques: Copa + 3 grandes eventos
+  if (featured) {
+    const destaque = CATALOG.slice(0, 4);
+    featured.innerHTML = destaque.map(e => {
+      const n = (e.sessions || []).length;
+      const img = e.image ? ('src/assets/img/' + e.image + '.png') : '';
+      return '<div class="uf-feat-card" data-wid="'+e.id+'">'
+        + '<div class="uf-feat-top">'+(img?'<img src="'+img+'" alt="" />':'')
+        +   '<span class="uf-feat-tag">'+(e.cat||'Evento')+'</span></div>'
+        + '<div class="uf-feat-body">'
+        +   '<h3>'+(e.title||e.evento)+'</h3>'
+        +   '<div class="meta">📍 '+(e.city||'')+'<br>📅 '+(n?'a partir de ':'')+(e.date||'')+'</div>'
+        +   '<span class="uf-feat-cta">'+(n? n+' atrações →' : 'Criar roteiro →')+'</span>'
+        + '</div></div>';
+    }).join('');
+    featured.querySelectorAll('[data-wid]').forEach(c =>
+      c.addEventListener('click', () => {
+        const ev = CATALOG.find(x => x.id === c.dataset.wid);
+        if (!ev) return;
+        if ((ev.sessions||[]).length) { goTo('home'); openSessionPicker(ev); }
+        else createItinerary(ev);
+      }));
+  }
+
+  // Próximos eventos: ordena por data (curados + sessões da Copa)
+  if (upcoming) {
+    const flat = [];
+    CATALOG.forEach(e => {
+      if ((e.sessions||[]).length) e.sessions.slice(0,3).forEach(s =>
+        flat.push({ ...e, ...s, title: e.evento + ' — ' + s.label, sessions: [] }));
+      else flat.push(e);
+    });
+    flat.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+    upcoming.innerHTML = flat.slice(0, 6).map(e => {
+      const d = e.date ? new Date(e.date+'T00:00:00') : null;
+      const ds = d ? d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' }) : '—';
+      return '<div class="uf-up-card" data-uid="'+e.id+'">'
+        + '<div class="uf-up-date">'+ds+'</div>'
+        + '<h4>'+(e.title||e.evento)+'</h4>'
+        + '<div class="meta">📍 '+(e.city||'')+'</div></div>';
+    }).join('');
+    upcoming.querySelectorAll('[data-uid]').forEach(c =>
+      c.addEventListener('click', async () => {
+        const full = await getJSON('/api/v1/events/find?id=' + encodeURIComponent(c.dataset.uid));
+        if (full && !full.error) createItinerary(full);
+      }));
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROTEIRO: criar → pré-visualizar → editar → salvar/PDF
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -672,19 +784,23 @@ export async function initRecommendationsScreen() {
   list.innerHTML = recs.map(e => {
     const col = catColor(e.cat);
     const isWC = e.cat === 'Futebol';
+    const nSessions = (e.sessions || []).length;
+    const recBtnLabel = nSessions ? ('Ver ' + nSessions + ' atrações') : 'Criar roteiro';
     return '<div class="card recommendation-card" style="display:flex;flex-direction:column;gap:.5rem;border-left:3px solid '+col+'">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+badge(isWC?'⚽ Copa do Mundo':'🎵 '+(e.cat||'Evento'), col)+'</div>'
       + '<h3 style="font-size:.96rem;margin:0;line-height:1.3">'+(e.title||e.evento)+'</h3>'
       + '<p style="font-size:.82rem;color:var(--muted);margin:0">📍 '+(e.city||'')+(e.country?', '+e.country:'')+'</p>'
       + (e.date?'<p style="font-size:.82rem;margin:0">📅 '+e.date+(e.time?' · '+e.time:'')+'</p>':'')
-      + '<button class="button button-primary" style="width:100%;margin-top:auto" data-recid="'+e.id+'">Criar roteiro</button>'
+      + '<button class="button button-primary" style="width:100%;margin-top:auto" data-recid="'+e.id+'">'+recBtnLabel+'</button>'
       + '</div>';
   }).join('');
  
   list.querySelectorAll('[data-recid]').forEach(b =>
     b.addEventListener('click', () => {
       const ev = recs.find(x => x.id === b.dataset.recid);
-      if (ev) createItinerary(ev);
+      if (!ev) return;
+      if ((ev.sessions || []).length) { goTo('home'); openSessionPicker(ev); }
+      else createItinerary(ev);
     }));
 }
  
