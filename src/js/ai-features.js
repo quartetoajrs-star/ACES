@@ -591,5 +591,3 @@ export async function initRecommendationsScreen() {
       +'</div>';
   }).join('');
 }
-}
-}
