@@ -24,9 +24,9 @@ app.mount("/src", StaticFiles(directory="src"), name="static")
 async def serve_root():
     return FileResponse("index.html")
  
-# ─────────────────────────────────────────────────────────────────────────────
+
 # PROXY DE IA — chama OpenAI a partir do backend (evita CORS no browser)
-# ─────────────────────────────────────────────────────────────────────────────
+
  
 class AIRequest(BaseModel):
     prompt: str
@@ -49,11 +49,30 @@ async def ai_generate(request: AIRequest):
         )
         return {"text": response.choices[0].message.content}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Devolve o motivo real (chave inválida, sem crédito, etc.)
+        raise HTTPException(status_code=500, detail=f"OpenAI: {type(e).__name__}: {str(e)}")
+
+
+# DIAGNÓSTICO — verifica quais chaves o servidor conseguiu carregar
+
+
+@app.get("/api/v1/diag")
+async def diag():
+    """Acesse /api/v1/diag para ver quais variáveis de ambiente foram lidas."""
+    return {"keys_loaded": api.status()}
+
+
+# EVENTOS REAIS — API-Football (Copa) + Ticketmaster (eventos paralelos)
+
+
+@app.get("/api/v1/events/real")
+async def events_real(city: str = None):
+    """Devolve jogos reais da Copa 2026 + eventos paralelos da cidade."""
+    return await api.get_real_events(city)
  
-# ─────────────────────────────────────────────────────────────────────────────
+
 # ROTAS ORIGINAIS
-# ─────────────────────────────────────────────────────────────────────────────
+
  
 @app.get("/api/v1/analyze-event/")
 async def analyze_event_logistics(
@@ -82,9 +101,9 @@ async def discover_regional_events(city: str):
     ticketmaster_events = await api.get_ticketmaster_events(city)
     return {"source": "Ticketmaster", "data": ticketmaster_events}
  
-# ─────────────────────────────────────────────────────────────────────────────
+
 # GOOGLE MAPS — rota real + imagem estática (proxy para não expor a chave)
-# ─────────────────────────────────────────────────────────────────────────────
+
  
 @app.get("/api/v1/maps/route")
 async def maps_route(origin: str, destination: str, mode: str = "driving"):
