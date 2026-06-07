@@ -1,4 +1,4 @@
-import { initEventsScreen, initMapScreen, initRoutesScreen, initRecommendationsScreen } from './ai-features.js';
+import { initEventsScreen, initMapScreen, initRoutesScreen, initRecommendationsScreen, setUserCoords } from './ai-features.js';
 import { AppState } from './state.js';
  
 // Rastreia quais screens já foram inicializadas (evita chamadas duplas à IA)
@@ -43,13 +43,15 @@ function navigateTo(screenId) {
  
     window.scrollTo({ top: 0, behavior: 'smooth' });
  
-    // Inicializa cada módulo uma única vez ao primeiro acesso
+    // Rotas: idempotente e leve — roda sempre para pré-preencher o destino
+    if (screenId === 'routes') initRoutesScreen();
+
+    // Telas com chamadas de IA: inicializa uma única vez
     if (!initialized.has(screenId)) {
         initialized.add(screenId);
         switch (screenId) {
             case 'home':             initEventsScreen();               break;
             case 'map':              initMapScreen();                  break;
-            case 'routes':           initRoutesScreen();               break;
             case 'recommendations':  initRecommendationsScreen();      break;
         }
     }
@@ -74,7 +76,7 @@ function setupConsentModal() {
     acceptBtn?.addEventListener('click', () => {
         modal.classList.remove('is-visible');
         navigator.geolocation?.getCurrentPosition(
-            pos  => AppState.update('userLocation', pos.coords),
+            pos  => { AppState.update('userLocation', pos.coords); setUserCoords(pos.coords); },
             err  => console.warn('Localização negada:', err)
         );
     });
