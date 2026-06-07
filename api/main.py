@@ -55,6 +55,18 @@ async def events_real(city: str = None, countryCode: str = None, keyword: str = 
 async def recommendations(lat: float = None, lng: float = None):
     return await api.get_recommendations(lat=lat, lng=lng)
 
+# ── CATÁLOGO CURADO (grandes eventos + multi-sessão) ──────────────────────────
+@app.get("/api/v1/events/catalog")
+async def events_catalog():
+    """Catálogo curado de grandes eventos (base confiável, com sessões)."""
+    return {"ok": True, "data": api.curated()}
+
+@app.get("/api/v1/events/find")
+async def events_find(id: str):
+    """Busca um evento ou sessão específica do catálogo (para montar roteiro)."""
+    ev = api.curated_find(id)
+    return ev or {"error": "não encontrado"}
+
 # ── LOCALIZAÇÃO (gratuita) ─────────────────────────────────────────────────────
 @app.get("/api/v1/places/autocomplete")
 async def places_autocomplete(q: str, kind: str = "geocode"):
