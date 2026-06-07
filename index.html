@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="src/css/layout.css" />
     <link rel="stylesheet" href="src/css/components.css" />
     <link rel="stylesheet" href="src/css/pages.css" />
- 
+
     <!-- Leaflet (mapa interativo com zoom/arraste) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -39,7 +39,7 @@
           <button class="header-icon" type="button" data-screen-target="notifications" aria-label="Ver alertas">
             <span class="line-icon icon-bell"></span>
           </button>
-          <button class="header-icon" type="button" data-screen-target="ratings" aria-label="Avaliar locais">
+          <button class="header-icon" type="button" id="accountButton" aria-label="Conta">
             <span class="line-icon icon-user"></span>
           </button>
         </div>
@@ -474,6 +474,38 @@
       </div>
     </div>
  
+   <!-- Overlay de Autenticação (login / cadastro) -->
+   <div class="modal-backdrop" id="authModal" role="dialog" aria-modal="true">
+     <div class="modal" style="max-width:400px">
+       <span class="eyebrow">Conta UrbanFlow</span>
+       <div style="display:flex;gap:.5rem;margin:.6rem 0 1rem">
+         <button class="button button-primary" id="authTabLogin" style="flex:1;padding:.5rem">Entrar</button>
+         <button class="button button-secondary" id="authTabSignup" style="flex:1;padding:.5rem">Cadastrar</button>
+       </div>
+
+       <form id="loginForm">
+         <label class="field"><span>E-mail</span>
+           <input id="loginEmail" type="text" autocomplete="username" placeholder="seu@email.com" /></label>
+         <label class="field"><span>Senha</span>
+           <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••" /></label>
+         <div id="loginMsg" style="font-size:.82rem;color:#dc2626;min-height:1.1em;margin:.3rem 0"></div>
+         <button class="button button-primary" type="submit" style="width:100%">Entrar</button>
+         <p style="font-size:.78rem;color:var(--muted);margin:.6rem 0 0;text-align:center">Teste rápido: login <strong>teste</strong> / senha <strong>teste</strong></p>
+       </form>
+
+       <form id="signupForm" style="display:none">
+         <label class="field"><span>E-mail</span>
+           <input id="signupEmail" type="text" autocomplete="username" placeholder="seu@email.com" /></label>
+         <label class="field"><span>Senha</span>
+           <input id="signupPass" type="password" autocomplete="new-password" placeholder="mínimo 4 caracteres" /></label>
+         <label class="field"><span>Confirmar senha</span>
+           <input id="signupConfirm" type="password" autocomplete="new-password" placeholder="repita a senha" /></label>
+         <div id="signupMsg" style="font-size:.82rem;color:#dc2626;min-height:1.1em;margin:.3rem 0"></div>
+         <button class="button button-primary" type="submit" style="width:100%">Criar conta</button>
+       </form>
+     </div>
+   </div>
+
    <script type="module" src="src/js/main.js"></script>
  
    <!-- Fallback de segurança: garante que o modal de consentimento sempre feche,
