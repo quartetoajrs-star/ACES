@@ -14,17 +14,34 @@ load_dotenv()
 
 class ExternalAPI:
     def __init__(self):
-        self.football_key = os.getenv("API_FOOTBALL_KEY")
-        self.ticketmaster_key = os.getenv("TICKETMASTER_KEY")
-        self.weather_key = os.getenv("OPENWEATHER_KEY")
-        self.openai_key = os.getenv("OPENAI_KEY")
-        # Aceita variações comuns do nome da variável de ambiente
-        self.maps_key = (
-            os.getenv("google-maps")
-            or os.getenv("GOOGLE_MAPS")
-            or os.getenv("GOOGLE_MAPS_KEY")
-            or os.getenv("GOOGLE_MAPS_API_KEY")
+        # Helper: tenta vários nomes possíveis da variável de ambiente
+        def env(*names):
+            for n in names:
+                v = os.getenv(n)
+                if v:
+                    return v
+            return None
+
+        self.football_key     = env("API_FOOTBALL_KEY", "FOOTBALL_KEY", "v3.football.api-sports.io")
+        self.ticketmaster_key = env("TICKETMASTER_KEY", "TICKETMASTER")
+        self.weather_key      = env("OPENWEATHER_KEY", "OPENWEATHER", "WEATHER_KEY")
+        self.openai_key       = env("OPENAI_KEY", "OPENAI", "OPENAI_API_KEY")
+        # Aceita o nome correto E o typo "goolgle-maps" visto no Render
+        self.maps_key = env(
+            "google-maps", "goolgle-maps", "GOOGLE_MAPS",
+            "GOOGLE_MAPS_KEY", "GOOGLE_MAPS_API_KEY", "GOOGLE-MAPS",
         )
+
+    def status(self):
+        """Diagnóstico: quais chaves foram carregadas (sem expor os valores)."""
+        return {
+            "OPENAI_KEY":       bool(self.openai_key),
+            "google-maps":      bool(self.maps_key),
+            "API_FOOTBALL_KEY": bool(self.football_key),
+            "TICKETMASTER_KEY": bool(self.ticketmaster_key),
+            "OPENWEATHER_KEY":  bool(self.weather_key),
+        }
+
 
     async def get_weather(self, city: str):
         """Busca a previsão meteorológica operacional atual para a cidade-sede."""
@@ -175,3 +192,89 @@ class ExternalAPI:
             f"&path=color:0x1a73e8C8|weight:5|enc:{polyline}"
             f"&key={self.maps_key}"
         )
+ 
+    async def get_world_cup_fixtures(self, season: int = 2026):
+        """
+        Busca jogos REAIS da Copa do Mundo 2026 (league 1 na API-Football)
+        e devolve no formato consumido pelo frontend.
+        """
+        if not self.football_key:
+            return {"ok": False, "error": "API_FOOTBALL_KEY ausente", "data": []}
+ 
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            try:
+                resp = await client.get(
+                    "https://v3.football.api-sports.io/fixtures",
+                    headers={"x-apisports-key": self.football_key},
+                    params={"league": 1, "season": season},
+                )
+                raw = resp.json()
+            except Exception as e:
+                return {"ok": False, "error": f"Exceção API-Football: {str(e)}", "data": []}
+ 
+        if not raw.get("response"):
+            errs = raw.get("errors")
+            return {"ok": False, "error": errs or "Sem jogos retornados", "data": []}
+ 
+        def risk_for(home, away):
+            big = {"Brazil", "Argentina", "France", "Spain", "Germany", "England", "Portugal", "Mexico"}
+            if home in big and away in big:
+                return "Alto"
+            if home in big or away in big:
+                return "Medio"
+            return "Baixo"
+ 
+        events = []
+        for fx in raw["response"]:
+            fixture = fx.get("fixture", {})
+            teams   = fx.get("teams", {})
+            venue   = fixture.get("venue", {})
+            home    = teams.get("home", {}).get("name", "A definir")
+            away    = teams.get("away", {}).get("name", "A definir")
+            date_iso = fixture.get("date", "")
+            events.append({
+                "id": "fx" + str(fixture.get("id", "")),
+                "cat": "Futebol",
+                "evento": "Copa do Mundo FIFA 2026",
+                "home": home,
+                "away": away,
+                "date": date_iso[:10] if date_iso else "",
+                "time": date_iso[11:16] if len(date_iso) > 16 else "",
+                "city": venue.get("city") or "A definir",
+                "country": "EUA/Canada/Mexico",
+                "phase": fx.get("league", {}).get("round", "Fase de grupos"),
+                "risk": risk_for(home, away),
+            })
+ 
+        return {"ok": True, "count": len(events), "data": events}
+ 
+    async def get_real_events(self, city: str = None):
+        """
+        Combina jogos da Copa (API-Football) + eventos paralelos (Ticketmaster).
+        """
+        result = {"futebol": [], "outros": []}
+ 
+        wc = await self.get_world_cup_fixtures()
+        if wc.get("ok"):
+            result["futebol"] = wc["data"]
+ 
+        if self.ticketmaster_key and city:
+            tm = await self.get_ticketmaster_events(city)
+            for ev in (tm.get("_embedded", {}) or {}).get("events", [])[:10]:
+                venue = (ev.get("_embedded", {}).get("venues", [{}]) or [{}])[0]
+                dates = ev.get("dates", {}).get("start", {})
+                result["outros"].append({
+                    "id": "tm" + str(ev.get("id", "")),
+                    "cat": ev.get("classifications", [{}])[0].get("segment", {}).get("name", "Evento"),
+                    "evento": ev.get("name", "Evento"),
+                    "home": ev.get("name", "Evento"),
+                    "away": "",
+                    "date": dates.get("localDate", ""),
+                    "time": dates.get("localTime", "")[:5] if dates.get("localTime") else "",
+                    "city": venue.get("city", {}).get("name", city),
+                    "country": venue.get("country", {}).get("name", ""),
+                    "phase": ev.get("classifications", [{}])[0].get("genre", {}).get("name", "Show/Evento"),
+                    "risk": "Medio",
+                })
+ 
+        return result
