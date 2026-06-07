@@ -1,109 +1,115 @@
-/**
- * ai-features.js — Funcionalidades alimentadas por IA (Anthropic API)
- * Controla: Eventos, Mapa Mundial, Rotas e Recomendações
- */
+let WC_EVENTS = [];        // jogos da Copa (cache)
+let LAST_EVENTS = [];      // eventos renderizados atualmente
+let _userCoords = null;    // GPS do usuário
+let _selectedEvent = null; // evento escolhido para roteiro
+let _currentItinerary = null;
+let _mapInstance = null;
+let _mapMarkers = [];
  
-const HOST_CITIES = [
-  { name: 'New York/New Jersey', country: 'EUA',    cc: 'US', lat: 40.7,  lon: -74.0,  stadium: 'MetLife Stadium',             matches: 8 },
-  { name: 'Los Angeles',         country: 'EUA',    cc: 'US', lat: 34.1,  lon: -118.3, stadium: 'SoFi Stadium',                matches: 6 },
-  { name: 'San Francisco',       country: 'EUA',    cc: 'US', lat: 37.8,  lon: -122.4, stadium: "Levi's Stadium",              matches: 6 },
-  { name: 'Dallas',              country: 'EUA',    cc: 'US', lat: 32.8,  lon: -96.8,  stadium: 'AT&T Stadium',                matches: 6 },
-  { name: 'Miami',               country: 'EUA',    cc: 'US', lat: 25.8,  lon: -80.2,  stadium: 'Hard Rock Stadium',           matches: 6 },
-  { name: 'Boston',              country: 'EUA',    cc: 'US', lat: 42.4,  lon: -71.1,  stadium: 'Gillette Stadium',            matches: 6 },
-  { name: 'Chicago',             country: 'EUA',    cc: 'US', lat: 41.9,  lon: -87.6,  stadium: 'Soldier Field',               matches: 5 },
-  { name: 'Seattle',             country: 'EUA',    cc: 'US', lat: 47.6,  lon: -122.3, stadium: 'Lumen Field',                 matches: 5 },
-  { name: 'Philadelphia',        country: 'EUA',    cc: 'US', lat: 40.0,  lon: -75.2,  stadium: 'Lincoln Financial Field',     matches: 5 },
-  { name: 'Kansas City',         country: 'EUA',    cc: 'US', lat: 39.1,  lon: -94.6,  stadium: 'Arrowhead Stadium',           matches: 5 },
-  { name: 'Atlanta',             country: 'EUA',    cc: 'US', lat: 33.7,  lon: -84.4,  stadium: 'Mercedes-Benz Stadium',       matches: 5 },
-  { name: 'Houston',             country: 'EUA',    cc: 'US', lat: 29.8,  lon: -95.4,  stadium: 'NRG Stadium',                 matches: 5 },
-  { name: 'Toronto',             country: 'Canada', cc: 'CA', lat: 43.7,  lon: -79.4,  stadium: 'BMO Field',                   matches: 6 },
-  { name: 'Vancouver',           country: 'Canada', cc: 'CA', lat: 49.3,  lon: -123.1, stadium: 'BC Place',                    matches: 6 },
-  { name: 'Cidade do Mexico',    country: 'Mexico', cc: 'MX', lat: 19.4,  lon: -99.1,  stadium: 'Estadio Azteca',              matches: 8 },
-  { name: 'Guadalajara',         country: 'Mexico', cc: 'MX', lat: 20.7,  lon: -103.4, stadium: 'Estadio Akron',               matches: 5 },
-  { name: 'Monterrey',           country: 'Mexico', cc: 'MX', lat: 25.7,  lon: -100.3, stadium: 'Estadio BBVA',                matches: 5 },
-];
+const STORAGE_KEY = 'aces_itineraries';
  
-let ALL_EVENTS = [
-  // Copa do Mundo 2026
-  { id:'wc01', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Brasil',    away:'Argentina',     date:'2026-06-18', time:'21:00', city:'New York/New Jersey', country:'EUA',    phase:'Fase de grupos', risk:'Alto'  },
-  { id:'wc02', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Portugal',  away:'Franca',        date:'2026-06-20', time:'18:00', city:'Los Angeles',          country:'EUA',    phase:'Fase de grupos', risk:'Medio' },
-  { id:'wc03', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Alemanha',  away:'Espanha',       date:'2026-06-22', time:'15:00', city:'Dallas',               country:'EUA',    phase:'Fase de grupos', risk:'Medio' },
-  { id:'wc04', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Mexico',    away:'Colombia',      date:'2026-06-15', time:'20:00', city:'Cidade do Mexico',     country:'Mexico', phase:'Fase de grupos', risk:'Alto'  },
-  { id:'wc05', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Canada',    away:'Marrocos',      date:'2026-06-16', time:'17:00', city:'Toronto',              country:'Canada', phase:'Fase de grupos', risk:'Baixo' },
-  { id:'wc06', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Inglaterra',away:'Japao',         date:'2026-06-21', time:'15:00', city:'Chicago',              country:'EUA',    phase:'Fase de grupos', risk:'Baixo' },
-  { id:'wc07', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Italia',    away:'EUA',           date:'2026-06-24', time:'21:00', city:'Miami',                country:'EUA',    phase:'Fase de grupos', risk:'Alto'  },
-  { id:'wc08', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Australia', away:'Coreia do Sul', date:'2026-06-19', time:'18:00', city:'Seattle',              country:'EUA',    phase:'Fase de grupos', risk:'Baixo' },
-  { id:'wc09', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Uruguai',   away:'Croatia',       date:'2026-06-23', time:'18:00', city:'Houston',              country:'EUA',    phase:'Fase de grupos', risk:'Medio' },
-  { id:'wc10', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Holanda',   away:'Senegal',       date:'2026-06-17', time:'15:00', city:'Philadelphia',         country:'EUA',    phase:'Fase de grupos', risk:'Baixo' },
-  { id:'wc11', cat:'Futebol',   evento:'Copa do Mundo FIFA 2026', home:'Final',     away:'A definir',     date:'2026-07-19', time:'18:00', city:'New York/New Jersey',  country:'EUA',    phase:'Final',          risk:'Alto'  },
-  // NBA Finals 2026
-  { id:'nba1', cat:'Basquete',  evento:'NBA Finals 2026', home:'Boston Celtics',          away:'Oklahoma City Thunder', date:'2026-06-10', time:'21:00', city:'Boston',     country:'EUA', phase:'Jogo 4',  risk:'Medio' },
-  { id:'nba2', cat:'Basquete',  evento:'NBA Finals 2026', home:'Oklahoma City Thunder',   away:'Boston Celtics',        date:'2026-06-14', time:'21:00', city:'Houston',    country:'EUA', phase:'Jogo 6',  risk:'Medio' },
-  // Wimbledon 2026
-  { id:'ten1', cat:'Tenis',     evento:'Wimbledon 2026',  home:'Semifinal Masculino',     away:'',              date:'2026-07-05', time:'14:00', city:'Londres',              country:'RU',     phase:'Semifinal', risk:'Baixo' },
-  { id:'ten2', cat:'Tenis',     evento:'Wimbledon 2026',  home:'Final Masculino',         away:'',              date:'2026-07-13', time:'14:00', city:'Londres',              country:'RU',     phase:'Final',     risk:'Baixo' },
-  { id:'ten3', cat:'Tenis',     evento:'US Open 2026',    home:'Final',                   away:'',              date:'2026-09-07', time:'15:00', city:'New York/New Jersey',  country:'EUA',    phase:'Final',     risk:'Baixo' },
-  // Formula 1
-  { id:'f1_1', cat:'Formula 1', evento:'F1 GP do Canada 2026',     home:'GP Montreal',   away:'',  date:'2026-06-08', time:'14:00', city:'Toronto',  country:'Canada', phase:'Corrida', risk:'Baixo' },
-  { id:'f1_2', cat:'Formula 1', evento:'F1 GP dos EUA 2026',       home:'GP Austin',     away:'',  date:'2026-10-18', time:'14:00', city:'Houston',  country:'EUA',    phase:'Corrida', risk:'Baixo' },
-  { id:'f1_3', cat:'Formula 1', evento:'F1 GP de Las Vegas 2026',  home:'GP Las Vegas',  away:'',  date:'2026-11-21', time:'22:00', city:'Las Vegas',country:'EUA',    phase:'Corrida', risk:'Medio' },
-  // UFC
-  { id:'ufc1', cat:'MMA / UFC', evento:'UFC 315', home:'Jon Jones',          away:'Tom Aspinall',    date:'2026-05-09', time:'22:00', city:'Las Vegas', country:'EUA', phase:'Principal',    risk:'Medio' },
-  { id:'ufc2', cat:'MMA / UFC', evento:'UFC 316', home:'Islam Makhachev',    away:'Charles Oliveira',date:'2026-06-28', time:'22:00', city:'Las Vegas', country:'EUA', phase:'Principal',    risk:'Medio' },
-  // MLB World Series
-  { id:'mlb1', cat:'Beisebol',  evento:'MLB World Series 2026', home:'A definir', away:'A definir', date:'2026-10-20', time:'20:00', city:'New York/New Jersey', country:'EUA', phase:'Jogo 1', risk:'Baixo' },
-  // NHL Stanley Cup
-  { id:'nhl1', cat:'Hoquei',    evento:'Stanley Cup Finals 2026', home:'Florida Panthers', away:'Colorado Avalanche', date:'2026-06-12', time:'20:00', city:'Miami', country:'EUA', phase:'Jogo 4', risk:'Baixo' },
-];
+export function setUserCoords(coords) { _userCoords = coords; }
  
-let CATEGORIES = ["Todos", ...new Set(ALL_EVENTS.map(e => e.cat))];
-let _selectedEvent = null;
- 
-// ═══════════════════════════════════════════════════════════════════════════════
-// PROXY DE IA — backend FastAPI usa OPENAI_KEY
-// ═══════════════════════════════════════════════════════════════════════════════
- 
-async function callClaude(prompt, maxTokens = 700) {
+// ─── Helpers de rede ────────────────────────────────────────────────────────────
+async function getJSON(url) {
   try {
-    const res = await fetch('/api/v1/ai/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, max_tokens: maxTokens }),
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } catch (e) { console.warn('[fetch]', url, e); return null; }
+}
+async function postJSON(url, body) {
+  try {
+    const r = await fetch(url, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    return data?.text || null;
-  } catch (e) {
-    console.error('[AI]', e);
-    return null;
-  }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } catch (e) { console.warn('[post]', url, e); return null; }
 }
  
-async function callClaudeJSON(prompt, maxTokens = 900) {
-  const text = await callClaude(prompt + '\n\nResponda APENAS JSON puro e valido. Sem markdown, sem texto extra.', maxTokens);
-  if (!text) return null;
-  try {
-    return JSON.parse(text.replace(/^```(?:json)?\n?|```$/gm, '').trim());
-  } catch {
-    const m = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+// IA via backend (Gemini). Retorna texto ou null.
+async function askAI(prompt, maxTokens = 700) {
+  const res = await postJSON('/api/v1/ai/generate', { prompt, max_tokens: maxTokens });
+  return res?.text || null;
+}
+async function askAIJSON(prompt, maxTokens = 900) {
+  const txt = await askAI(prompt + '\n\nResponda APENAS JSON válido, sem markdown.', maxTokens);
+  if (!txt) return null;
+  try { return JSON.parse(txt.replace(/^```(?:json)?\n?|```$/gm, '').trim()); }
+  catch {
+    const m = txt.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
     if (m) { try { return JSON.parse(m[0]); } catch {} }
     return null;
   }
 }
  
-// ─── Helpers ──────────────────────────────────────────────────────────────────
- 
-function riskBadge(risk) {
-  const m = { 'Alto':'#dc2626', 'Medio':'#d97706', 'Baixo':'#16a34a' };
-  const c = m[risk] || '#6b7280';
-  return '<span style="display:inline-block;padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:800;background:' + c + '22;color:' + c + ';border:1px solid ' + c + '44">' + (risk==='Medio'?'Médio':risk) + '</span>';
+// ─── Helpers visuais ────────────────────────────────────────────────────────────
+function catColor(cat) {
+  const m = { 'Futebol':'#15803d','Sports':'#15803d','Music':'#7c3aed','Música':'#7c3aed',
+    'Arts & Theatre':'#db2777','Miscellaneous':'#0891b2','Film':'#ea580c' };
+  return m[cat] || '#0369a1';
+}
+function badge(text, color) {
+  return '<span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700;background:'+color+'18;color:'+color+';border:1px solid '+color+'33">'+text+'</span>';
+}
+function skeleton(cols) {
+  return '<div class="skeleton-card"'+(cols?' style="grid-column:1/-1"':'')+'><span></span><span></span><span></span></div>';
+}
+function errBox(msg) {
+  return '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:.85rem;color:#dc2626;text-align:center;font-size:.86rem">'+msg+'</div>';
 }
  
-function catBadge(cat) {
-  const m = { 'Futebol':'#15803d','Basquete':'#ea580c','Tenis':'#ca8a04','Formula 1':'#dc2626','MMA / UFC':'#7c3aed','Beisebol':'#0369a1','Hoquei':'#0891b2' };
-  const c = m[cat] || '#6b7280';
-  const label = cat === 'Tenis' ? 'Tênis' : cat === 'Hoquei' ? 'Hóquei' : cat;
-  return '<span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700;background:' + c + '18;color:' + c + ';border:1px solid ' + c + '33">' + label + '</span>';
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUTOCOMPLETE (Google Places via backend, fallback offline)
+// ═══════════════════════════════════════════════════════════════════════════════
+ 
+function attachAutocomplete(inputId, listId, kind, onPick) {
+  const input = document.getElementById(inputId);
+  const list  = document.getElementById(listId);
+  if (!input || !list) return;
+  let timer = null, items = [], active = -1;
+ 
+  const close = () => { list.classList.remove('is-open'); list.innerHTML = ''; active = -1; };
+  const render = () => {
+    if (!items.length) { close(); return; }
+    list.innerHTML = items.map((it, i) =>
+      '<div class="ac-item'+(i===active?' is-active':'')+'" data-i="'+i+'">'+it.label+'</div>'
+    ).join('');
+    list.classList.add('is-open');
+    list.querySelectorAll('.ac-item').forEach(el => {
+      el.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const it = items[parseInt(el.dataset.i)];
+        input.value = it.label;
+        close();
+        onPick?.(it);
+      });
+    });
+  };
+ 
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    const q = input.value.trim();
+    if (q.length < 2) { close(); return; }
+    timer = setTimeout(async () => {
+      const res = await getJSON('/api/v1/places/autocomplete?kind=' + kind + '&q=' + encodeURIComponent(q));
+      items = res?.data || [];
+      active = -1;
+      render();
+    }, 220);
+  });
+  input.addEventListener('keydown', (e) => {
+    if (!list.classList.contains('is-open')) return;
+    if (e.key === 'ArrowDown') { active = Math.min(active+1, items.length-1); render(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { active = Math.max(active-1, 0); render(); e.preventDefault(); }
+    else if (e.key === 'Enter' && active >= 0) {
+      e.preventDefault();
+      const it = items[active]; input.value = it.label; close(); onPick?.(it);
+    } else if (e.key === 'Escape') close();
+  });
+  input.addEventListener('blur', () => setTimeout(close, 150));
 }
  
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -111,504 +117,538 @@ function catBadge(cat) {
 // ═══════════════════════════════════════════════════════════════════════════════
  
 export async function initEventsScreen() {
-  buildCountryFilter();
-  setupEventSearch();
- 
   const list = document.getElementById('eventList');
-  if (list) list.innerHTML = '<div class="skeleton-card" style="grid-column:1/-1"><span></span><span></span><span></span></div>';
+  if (list) list.innerHTML = skeleton(true);
  
-  // Tenta buscar eventos REAIS via backend (API-Football + Ticketmaster)
-  try {
-    const res = await fetch('/api/v1/events/real');
-    if (res.ok) {
-      const data = await res.json();
-      const reais = [...(data.futebol || []), ...(data.outros || [])];
-      if (reais.length) {
-        const naoCopa = ALL_EVENTS.filter(e => e.evento !== 'Copa do Mundo FIFA 2026');
-        ALL_EVENTS = [...reais, ...naoCopa];
-        CATEGORIES = ['Todos', ...new Set(ALL_EVENTS.map(e => e.cat))];
-      }
-    }
-  } catch (e) {
-    console.warn('[Eventos] usando lista local (backend indisponível):', e);
+  // Autocomplete país e cidade (filtram a lista ao escolher)
+  attachAutocomplete('homeCountryInput', 'homeCountryAC', 'country', () => loadEvents());
+  attachAutocomplete('homeCityInput', 'homeCityAC', 'city', () => loadEvents());
+  const search = document.getElementById('eventSearchInput');
+  if (search && !search.dataset.bound) {
+    search.dataset.bound = '1';
+    let t = null;
+    search.addEventListener('input', () => { clearTimeout(t); t = setTimeout(loadEvents, 300); });
   }
  
-  buildCategoryFilters();
-  renderEventCards(ALL_EVENTS);
-  filterAndRender();
+  await loadEvents();
 }
  
-function buildCategoryFilters() {
-  const host = document.getElementById('eventSearchInput')?.closest('.panel');
-  if (!host || document.getElementById('catFilters')) return;
-  const div = document.createElement('div');
-  div.id = 'catFilters';
-  div.style.cssText = 'display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.75rem';
-  div.innerHTML = CATEGORIES.map(c =>
-    '<button class="cat-btn" data-cat="' + c + '" style="padding:.35rem .85rem;border-radius:999px;font-size:.78rem;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--surface-soft);color:var(--ink)">' + c + '</button>'
-  ).join('');
-  host.appendChild(div);
-  div.querySelectorAll('.cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      div.querySelectorAll('.cat-btn').forEach(b => { b.style.background='var(--surface-soft)'; b.style.color='var(--ink)'; b.style.borderColor='var(--line)'; });
-      btn.style.background='#15803d'; btn.style.color='#fff'; btn.style.borderColor='transparent';
-      filterAndRender();
-    });
-  });
-  div.querySelector('[data-cat="Todos"]').click();
-}
+async function loadEvents() {
+  const list = document.getElementById('eventList');
+  if (list) list.innerHTML = skeleton(true);
  
-function buildCountryFilter() {
-  const cs = document.getElementById('homeCountrySelect');
-  const ci = document.getElementById('homeCitySelect');
-  if (!cs || !ci) return;
-  cs.innerHTML = ['Todos',...new Set(HOST_CITIES.map(c=>c.country))].map(c =>
-    '<option value="'+c+'">'+(c==='Todos'?'Todos os paises':c)+'</option>'
-  ).join('');
-  const upd = () => {
-    const sel = cs.value;
-    const cities = sel==='Todos' ? ['Todas as cidades',...HOST_CITIES.map(c=>c.name)]
-      : ['Todas as cidades',...HOST_CITIES.filter(c=>c.country===sel).map(c=>c.name)];
-    ci.innerHTML = cities.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
-    filterAndRender();
-  };
-  cs.addEventListener('change', upd);
-  ci.addEventListener('change', filterAndRender);
-  upd();
-}
+  const city    = (document.getElementById('homeCityInput')?.value || '').split(',')[0].trim();
+  const keyword = (document.getElementById('eventSearchInput')?.value || '').trim();
  
-function filterAndRender() {
-  const country = document.getElementById('homeCountrySelect')?.value || 'Todos';
-  const city    = document.getElementById('homeCitySelect')?.value    || 'Todas as cidades';
-  const search  = (document.getElementById('eventSearchInput')?.value || '').toLowerCase();
-  const catBtn  = document.querySelector('#catFilters .cat-btn[style*="color: #fff"], #catFilters .cat-btn[style*="color:#fff"]');
-  const cat     = catBtn?.dataset?.cat || 'Todos';
+  // Busca Copa (cache) + Ticketmaster filtrado
+  if (!WC_EVENTS.length) {
+    const wc = await getJSON('/api/v1/events/worldcup');
+    WC_EVENTS = wc?.data || [];
+  }
+  const params = new URLSearchParams();
+  if (city) params.set('city', city);
+  if (keyword) params.set('keyword', keyword);
+  const tm = await getJSON('/api/v1/events/ticketmaster?' + params.toString());
+  const tmEvents = tm?.data || [];
  
-  const filtered = ALL_EVENTS.filter(e => {
-    const byCountry = country==='Todos' || e.country===country;
-    const byCity    = city==='Todas as cidades' || e.city===city;
-    const byCat     = cat==='Todos' || e.cat===cat;
-    const bySearch  = !search || [e.home,e.away,e.city,e.evento,e.cat].some(v=>v.toLowerCase().includes(search));
-    return byCountry && byCity && byCat && bySearch;
-  });
+  // Filtra Copa por cidade/keyword se informado
+  let wcFiltered = WC_EVENTS;
+  if (city) wcFiltered = wcFiltered.filter(e => (e.city||'').toLowerCase().includes(city.toLowerCase()));
+  if (keyword) wcFiltered = wcFiltered.filter(e =>
+    [e.home, e.away, e.title].some(v => (v||'').toLowerCase().includes(keyword.toLowerCase())));
  
-  renderEventCards(filtered);
-  const lbl = document.getElementById('eventCountLabel');
-  if (lbl) lbl.textContent = filtered.length + ' evento' + (filtered.length!==1?'s':'');
-}
- 
-function setupEventSearch() {
-  document.getElementById('eventSearchInput')?.addEventListener('input', filterAndRender);
+  LAST_EVENTS = [...wcFiltered, ...tmEvents];
+  renderEventCards(LAST_EVENTS);
 }
  
 function renderEventCards(events) {
   const list = document.getElementById('eventList');
+  const label = document.getElementById('eventCountLabel');
+  if (label) label.textContent = events.length + ' evento' + (events.length!==1?'s':'');
   if (!list) return;
   if (!events.length) {
-    list.innerHTML = '<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted)">Nenhum evento encontrado.</div>';
+    list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted)">Nenhum evento encontrado. Tente outra cidade ou termo.</div>';
     return;
   }
-  list.innerHTML = events.map(e => {
-    const cityInfo = HOST_CITIES.find(c=>c.name===e.city)||{};
-    const title = e.away ? e.home+' x '+e.away : e.home;
-    return '<div class="card event-card" style="display:flex;flex-direction:column;gap:.45rem">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center">' + catBadge(e.cat) + riskBadge(e.risk) + '</div>'
-      + '<h3 style="font-size:.98rem;margin:0;line-height:1.3">' + title + '</h3>'
-      + '<div style="font-size:.81rem;color:var(--muted);line-height:1.8">'
-      + '<div>Cidade: ' + e.city + ', ' + e.country + '</div>'
-      + '<div>Local: ' + (cityInfo.stadium||e.evento) + '</div>'
-      + '<div>Data: ' + e.date + ' as ' + e.time + '</div>'
-      + '<div>Fase: ' + e.phase + '</div>'
+  list.innerHTML = events.slice(0, 30).map(e => {
+    const col = catColor(e.cat);
+    return '<div class="card event-card" style="display:flex;flex-direction:column;gap:.5rem">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center">'
+      +   badge(e.cat || 'Evento', col)
+      +   (e.phase ? '<span style="font-size:.72rem;color:var(--muted)">'+e.phase+'</span>' : '')
       + '</div>'
-      + '<button class="button button-primary" style="width:100%;margin-top:auto" data-evid="' + e.id + '">Ver analise de risco</button>'
+      + '<h3 style="font-size:1rem;margin:0;line-height:1.3">'+(e.title || e.evento)+'</h3>'
+      + '<div style="font-size:.82rem;color:var(--muted);line-height:1.7">'
+      +   '<div>📍 '+(e.city||'')+(e.country?', '+e.country:'')+'</div>'
+      +   (e.venue ? '<div>🏟 '+e.venue+'</div>' : '')
+      +   (e.date ? '<div>📅 '+e.date+(e.time?' · '+e.time:'')+'</div>' : '')
+      + '</div>'
+      + '<button class="button button-primary" style="width:100%;margin-top:auto" data-evid="'+e.id+'">Criar roteiro</button>'
       + '</div>';
   }).join('');
  
   list.querySelectorAll('[data-evid]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const ev = ALL_EVENTS.find(e=>e.id===btn.dataset.evid);
-      if (ev) showRiskAnalysis(ev);
+      const ev = events.find(x => x.id === btn.dataset.evid);
+      if (ev) createItinerary(ev);
     });
   });
 }
  
-async function showRiskAnalysis(ev) {
-  const panel = document.getElementById('selectedEventSummary');
-  if (!panel) return;
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROTEIRO: criar → pré-visualizar → editar → salvar/PDF
+// ═══════════════════════════════════════════════════════════════════════════════
+ 
+export async function createItinerary(ev) {
   _selectedEvent = ev;
-  const title = ev.away ? ev.home+' x '+ev.away : ev.home;
-  const cityInfo = HOST_CITIES.find(c=>c.name===ev.city)||{};
+  goTo('itinerary');
  
-  panel.innerHTML = '<div style="padding:1rem"><div style="margin-bottom:.5rem">'+catBadge(ev.cat)+'</div>'
-    + '<h3 style="margin:.2rem 0 .3rem">'+title+'</h3>'
-    + '<p style="font-size:.82rem;color:var(--muted);margin-bottom:.75rem">'+ev.date+' - '+ev.city+'</p>'
-    + '<div class="skeleton-card"><span></span><span></span><span></span></div>'
-    + '<p style="font-size:.78rem;color:var(--muted);margin-top:.4rem">IA analisando...</p></div>';
+  const agendaList = document.getElementById('agendaList');
+  const builder    = document.getElementById('itineraryBuilder');
+  const h1 = document.querySelector('#screen-itinerary .screen-heading h1');
+  if (h1) h1.textContent = 'Roteiro: ' + (ev.title || ev.evento);
+  if (agendaList) agendaList.innerHTML = skeleton();
+  if (builder) builder.innerHTML = skeleton();
  
-  const result = await callClaudeJSON(
-    'Analise logistica do evento: ' + title
-    + '\nEvento: ' + ev.evento
-    + '\nCidade: ' + ev.city + ', ' + ev.country
-    + '\nLocal: ' + (cityInfo.stadium||ev.city)
-    + '\nData: ' + ev.date + ' as ' + ev.time
-    + '\nFase: ' + ev.phase
-    + '\n\nRetorne JSON: {"risco":"Alto/Medio/Baixo","publico_estimado":"numero com unidade",'
-    + '"dica_transporte":"frase curta","dica_chegada":"frase curta","alerta":"frase curta"}'
-  );
+  const origin = _userCoords ? (_userCoords.latitude + ',' + _userCoords.longitude) : null;
+  const res = await postJSON('/api/v1/itinerary', { event: ev, origin });
  
-  if (!result) {
-    panel.innerHTML = '<div style="padding:1rem"><div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:.75rem;color:#dc2626;font-size:.84rem;text-align:center">Falha. Verifique OPENAI_KEY no Render.</div></div>';
+  if (!res || !res.ok) {
+    if (agendaList) agendaList.innerHTML = errBox('Falha ao montar o roteiro.');
+    if (builder) builder.innerHTML = '';
     return;
   }
+  _currentItinerary = res;
+  renderItineraryPreview(res);
+}
  
-  const riskLabel = result.risco==='Medio' ? 'Médio' : (result.risco||'N/A');
+function renderItineraryPreview(it) {
+  const agendaList = document.getElementById('agendaList');
+  const builder    = document.getElementById('itineraryBuilder');
+  const lbl = document.getElementById('agendaCountLabel');
+  if (lbl) lbl.textContent = (it.agenda?.length || 0) + ' atividades';
  
-  panel.innerHTML = '<div style="padding:1rem">'
-    + '<div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.4rem">Analise de Risco — IA</div>'
-    + '<h3 style="margin:0 0 .5rem">'+title+'</h3>'
-    + '<div style="display:grid;gap:.4rem">'
-    + mkCard('<strong>Nivel de risco</strong><div style="margin-top:.2rem">'+riskBadge(result.risco)+'</div>')
-    + mkCard('Publico estimado: <strong>'+result.publico_estimado+'</strong>')
-    + mkCard('Transporte: '+result.dica_transporte)
-    + mkCard('Chegada: '+result.dica_chegada)
-    + '<div class="indicator-card" style="padding:.6rem .8rem;border-left:3px solid #d97706"><span style="font-size:.82rem;color:#d97706">Alerta: '+result.alerta+'</span></div>'
-    + '<button class="button button-primary" style="width:100%;margin-top:.15rem" id="planBtn">Criar planejamento</button>'
+  const icons = { hotel:'🏨', transporte:'🚌', evento:'🎫', alimentacao:'🍽️', turismo:'🗺️' };
+ 
+  // Agenda (esquerda)
+  if (agendaList) {
+    agendaList.innerHTML = (it.agenda || []).map(a =>
+      '<div class="itin-card"><div style="display:flex;justify-content:space-between;align-items:center">'
+      + '<strong style="font-size:.85rem">'+(icons[a.tipo]||'📌')+' '+a.atividade+'</strong>'
+      + '<span style="font-size:.76rem;background:rgba(0,0,0,.06);padding:2px 8px;border-radius:999px">'+a.hora+'</span>'
+      + '</div><p style="font-size:.8rem;margin:.2rem 0 0;color:var(--muted)">'+(a.detalhe||'')+'</p></div>'
+    ).join('');
+  }
+ 
+  // Builder (direita): hotéis, restaurantes, deslocamento, custo, ações
+  if (builder) {
+    const ev = it.event || {};
+    const hotels = (it.hotels||[]).map(h =>
+      '<div class="itin-place"><div><strong style="font-size:.84rem">'+h.nome+'</strong>'
+      + '<div style="font-size:.76rem;color:var(--muted)">'+(h.endereco||'')+'</div></div>'
+      + (h.rating ? '<span style="font-size:.78rem;color:#d97706">★ '+h.rating+'</span>' : '')+'</div>'
+    ).join('') || '<p style="font-size:.82rem;color:var(--muted)">Sem dados de hospedagem.</p>';
+ 
+    const rests = (it.restaurants||[]).map(r =>
+      '<div class="itin-place"><div><strong style="font-size:.84rem">'+r.nome+'</strong>'
+      + '<div style="font-size:.76rem;color:var(--muted)">'+(r.endereco||'')+'</div></div>'
+      + (r.rating ? '<span style="font-size:.78rem;color:#d97706">★ '+r.rating+'</span>' : '')+'</div>'
+    ).join('') || '<p style="font-size:.82rem;color:var(--muted)">Sem dados de restaurantes.</p>';
+ 
+    const travel = it.travel && it.travel.ok
+      ? '<div class="itin-card">🚌 Deslocamento até o local: <strong>'+it.travel.duration+'</strong> ('+it.travel.distance+')</div>'
+      : '';
+ 
+    builder.innerHTML =
+      '<div class="itin-section"><p style="font-size:.82rem;color:var(--muted)">📅 '+(ev.date||'')+' · ⏰ '+(ev.time||'')+' · 📍 '+(ev.city||'')+'</p></div>'
+      + travel
+      + '<div class="itin-card"><strong style="font-size:.82rem;color:#15803d">💰 Custo médio estimado</strong><p style="font-size:.88rem;margin:.2rem 0 0">'+(it.custo_medio||'—')+'</p></div>'
+      + '<div class="itin-section"><strong style="font-size:.85rem">🏨 Hospedagem próxima</strong>'+hotels+'</div>'
+      + '<div class="itin-section"><strong style="font-size:.85rem">🍽️ Restaurantes próximos</strong>'+rests+'</div>'
+      + '<div style="display:grid;gap:.5rem;margin-top:.8rem">'
+      +   '<button class="button button-primary" id="editItinBtn" style="width:100%">✏️ Editar roteiro</button>'
+      +   '<button class="button button-secondary" id="saveItinBtn" style="width:100%">💾 Salvar roteiro</button>'
+      +   '<button class="button button-secondary" id="pdfItinBtn" style="width:100%">📄 Exportar PDF</button>'
+      + '</div>';
+ 
+    document.getElementById('editItinBtn')?.addEventListener('click', openEditor);
+    document.getElementById('saveItinBtn')?.addEventListener('click', () => { saveItinerary(it); toast('Roteiro salvo!'); });
+    document.getElementById('pdfItinBtn')?.addEventListener('click', () => exportPDF(it));
+  }
+}
+ 
+// ── Editor ──────────────────────────────────────────────────────────────────
+function openEditor() {
+  if (!_currentItinerary) return;
+  goTo('edit');
+  const editor = document.getElementById('itineraryEditor');
+  if (!editor) return;
+  const ag = _currentItinerary.agenda || [];
+  editor.innerHTML =
+    '<div class="panel" style="padding:1rem">'
+    + '<p style="font-size:.84rem;color:var(--muted);margin-bottom:.6rem">Edite os horários e atividades do seu roteiro:</p>'
+    + '<div id="editRows">'
+    + ag.map((a, i) =>
+        '<div class="agenda-edit-row">'
+        + '<input value="'+(a.hora||'')+'" data-i="'+i+'" data-f="hora" />'
+        + '<input value="'+(a.atividade||'').replace(/"/g,'&quot;')+'" data-i="'+i+'" data-f="atividade" />'
+        + '<button class="button button-secondary" data-del="'+i+'" style="padding:.3rem .6rem">✕</button>'
+        + '</div>'
+      ).join('')
+    + '</div>'
+    + '<div style="display:flex;gap:.5rem;margin-top:.8rem;flex-wrap:wrap">'
+    +   '<button class="button button-secondary" id="addRowBtn">+ Adicionar item</button>'
+    +   '<button class="button button-primary" id="saveEditBtn">Salvar alterações</button>'
     + '</div></div>';
  
-  document.getElementById('planBtn')?.addEventListener('click', () => createPlanning(ev));
+  const collect = () => {
+    const rows = {};
+    editor.querySelectorAll('#editRows input').forEach(inp => {
+      const i = inp.dataset.i, f = inp.dataset.f;
+      rows[i] = rows[i] || { tipo: (_currentItinerary.agenda[i]?.tipo) || 'evento', detalhe: (_currentItinerary.agenda[i]?.detalhe)||'' };
+      rows[i][f] = inp.value;
+    });
+    return Object.values(rows);
+  };
+  editor.querySelectorAll('[data-del]').forEach(b =>
+    b.addEventListener('click', () => {
+      _currentItinerary.agenda = collect().filter((_, idx) => idx !== parseInt(b.dataset.del));
+      openEditor();
+    }));
+  document.getElementById('addRowBtn')?.addEventListener('click', () => {
+    _currentItinerary.agenda = [...collect(), { hora:'12:00', atividade:'Nova atividade', detalhe:'', tipo:'turismo' }];
+    openEditor();
+  });
+  document.getElementById('saveEditBtn')?.addEventListener('click', () => {
+    _currentItinerary.agenda = collect();
+    renderItineraryPreview(_currentItinerary);
+    goTo('itinerary');
+    toast('Alterações aplicadas!');
+  });
 }
  
-function mkCard(html) {
-  return '<div class="indicator-card" style="padding:.6rem .8rem"><span style="font-size:.82rem">'+html+'</span></div>';
+// ── Persistência (localStorage) ───────────────────────────────────────────────
+function loadSaved() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+}
+function saveItinerary(it) {
+  const all = loadSaved();
+  const rec = { ...it, savedAt: Date.now(), id: 'it' + Date.now() };
+  all.unshift(rec);
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(all.slice(0, 30))); } catch {}
+  renderSavedList();
+  renderFinal();
 }
  
-// ═══════════════════════════════════════════════════════════════════════════════
-// SCREEN: PLANEJAMENTO
-// ═══════════════════════════════════════════════════════════════════════════════
- 
-export async function createPlanning(ev) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('is-active'));
-  document.getElementById('screen-itinerary')?.classList.add('is-active');
-  document.querySelectorAll('.nav-link').forEach(l=>l.classList.toggle('is-active',l.dataset.screenTarget==='itinerary'));
-  window.scrollTo({top:0,behavior:'smooth'});
- 
-  const agList  = document.getElementById('agendaList');
-  const itinDiv = document.getElementById('itineraryBuilder');
-  if (!agList||!itinDiv) return;
- 
-  const title = ev.away ? ev.home+' x '+ev.away : ev.home;
-  const ci    = HOST_CITIES.find(c=>c.name===ev.city)||{};
-  const h1    = document.querySelector('#screen-itinerary .screen-heading h1');
-  const lbl   = document.getElementById('agendaCountLabel');
-  if (h1) h1.textContent = 'Planejamento: '+title;
-  if (lbl) lbl.textContent = '';
- 
-  agList.innerHTML  = '<div class="skeleton-card"><span></span><span></span><span></span></div>';
-  itinDiv.innerHTML = '<div class="skeleton-card"><span></span><span></span></div>';
- 
-  const result = await callClaudeJSON(
-    'Crie um itinerario detalhado para: '+title+' — '+ev.evento
-    +'\nLocal: '+(ci.stadium||ev.city)+', '+ev.city+', '+ev.country
-    +'\nData: '+ev.date+' as '+ev.time
-    +'\n\nRetorne JSON: {"agenda":[{"hora":"08:00","atividade":"nome","detalhe":"descricao","tipo":"hotel"}],'
-    +'"dicas":["dica1","dica2","dica3"],"orcamento":"USD XXX–YYY por pessoa"}'
-  , 1000);
- 
-  if (!result) {
-    agList.innerHTML = '<div style="padding:1rem;color:#dc2626">Falha ao gerar agenda.</div>';
-    itinDiv.innerHTML = '';
+export function renderSavedList() {
+  const host = document.getElementById('agendaList');
+  // Mostra lista de salvos somente quando NÃO há roteiro ativo em construção
+  if (!host || _currentItinerary) return;
+  const all = loadSaved();
+  const lbl = document.getElementById('agendaCountLabel');
+  if (lbl) lbl.textContent = all.length + ' salvos';
+  if (!all.length) {
+    host.innerHTML = '<p style="font-size:.85rem;color:var(--muted)">Nenhum roteiro salvo ainda. Selecione um evento e clique em "Criar roteiro".</p>';
     return;
   }
- 
-  const icons = {hotel:'Hotel',transporte:'Onibus',evento:'Bola',alimentacao:'Prato',turismo:'Mapa'};
-  const emojiMap = {hotel:'🏨',transporte:'🚌',evento:'⚽',alimentacao:'🍔',turismo:'🗺️'};
- 
-  if (lbl) lbl.textContent = (result.agenda?.length||0)+' atividades';
- 
-  agList.innerHTML = (result.agenda||[]).map(item =>
-    '<div style="padding:.65rem .9rem;border-left:3px solid #15803d;margin-bottom:.35rem;background:var(--surface-soft);border-radius:0 8px 8px 0">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center">'
-    + '<strong style="font-size:.84rem">'+(emojiMap[item.tipo]||'📌')+' '+item.atividade+'</strong>'
-    + '<span style="font-size:.76rem;background:rgba(0,0,0,.07);padding:2px 8px;border-radius:999px">'+item.hora+'</span>'
-    + '</div>'
-    + '<p style="font-size:.8rem;margin:.15rem 0 0;color:var(--muted)">'+item.detalhe+'</p>'
-    + '</div>'
+  host.innerHTML = all.map(it =>
+    '<div class="saved-itin-card"><div><strong style="font-size:.88rem">'+(it.event?.title||'Roteiro')+'</strong>'
+    + '<div style="font-size:.78rem;color:var(--muted)">📅 '+(it.event?.date||'')+' · 📍 '+(it.event?.city||'')+'</div></div>'
+    + '<div style="display:flex;gap:.4rem"><button class="button button-secondary" data-open="'+it.id+'" style="padding:.35rem .7rem">Abrir</button>'
+    + '<button class="button button-secondary" data-del="'+it.id+'" style="padding:.35rem .7rem">✕</button></div></div>'
   ).join('');
- 
-  itinDiv.innerHTML = '<div style="margin-bottom:.6rem">'
-    + '<p style="font-size:.82rem;color:var(--muted)">Data: '+ev.date+' | Hora: '+ev.time+' | Local: '+ev.city+'</p>'
-    + '</div>'
-    + '<div style="background:rgba(21,128,61,.08);border-radius:10px;padding:.65rem .8rem;margin-bottom:.65rem">'
-    + '<strong style="font-size:.8rem;color:#15803d">Orcamento estimado</strong>'
-    + '<p style="font-size:.88rem;margin:.15rem 0 0">'+(result.orcamento||'Consulte localmente')+'</p>'
-    + '</div>'
-    + '<div style="display:grid;gap:.4rem;margin-bottom:.8rem">'
-    + (result.dicas||[]).map(d=>'<div class="indicator-card" style="padding:.55rem .8rem"><span style="font-size:.82rem">Dica: '+d+'</span></div>').join('')
-    + '</div>'
-    + '<button class="button button-secondary" style="width:100%" data-screen-target="routes">Planejar rota</button>';
+  host.querySelectorAll('[data-open]').forEach(b =>
+    b.addEventListener('click', () => {
+      const it = loadSaved().find(x => x.id === b.dataset.open);
+      if (it) { _currentItinerary = it; renderItineraryPreview(it); }
+    }));
+  host.querySelectorAll('[data-del]').forEach(b =>
+    b.addEventListener('click', () => {
+      const all2 = loadSaved().filter(x => x.id !== b.dataset.del);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(all2));
+      renderSavedList(); renderFinal();
+    }));
 }
  
-// ═══════════════════════════════════════════════════════════════════════════════
-// SCREEN: MAPA
-// ═══════════════════════════════════════════════════════════════════════════════
- 
-export function initMapScreen() {
-  const canvas = document.getElementById('mapCanvas');
-  if (!canvas) return;
-  canvas.classList.add('world-map');
-  canvas.style.position='relative'; canvas.style.overflow='hidden'; canvas.style.padding='0';
-  canvas.innerHTML = buildMap();
-  canvas.querySelectorAll('.city-pin').forEach(pin => {
-    pin.addEventListener('click', () => {
-      const city = HOST_CITIES.find(c=>c.name===pin.dataset.city);
-      if (city) showCityInfo(city);
+export function initItineraryScreen() {
+  // Se não há roteiro ativo, mostra os salvos
+  if (!_currentItinerary) renderSavedList();
+  const saveBtn = document.getElementById('savePreferencesButton');
+  if (saveBtn && !saveBtn.dataset.bound) {
+    saveBtn.dataset.bound = '1';
+    saveBtn.addEventListener('click', () => {
+      if (_currentItinerary) { saveItinerary(_currentItinerary); toast('Roteiro salvo!'); }
+      else toast('Nenhum roteiro ativo.');
     });
-  });
-  const panel = document.getElementById('poiDetails');
-  if (panel) {
-    panel.innerHTML = '<div style="padding:1rem"><span class="eyebrow">Copa do Mundo 2026</span>'
-      + '<h2 style="margin:.4rem 0 .5rem;font-size:1rem">17 cidades-sede</h2>'
-      + '<p style="font-size:.86rem;color:var(--muted)">Clique em um marcador para ver analise logistica.</p>'
-      + '<div style="margin-top:.75rem;display:grid;gap:.35rem">'
-      + [['EUA','12 cidades','#15803d'],['Canada','2 cidades','#c41e3a'],['Mexico','3 cidades','#006847']].map(([c,n,col])=>
-          '<div class="indicator-card" style="padding:.5rem .8rem;border-left:3px solid '+col+';font-size:.84rem"><strong>'+c+'</strong> — '+n+'</div>'
-        ).join('')
-      + '</div></div>';
   }
 }
  
-function latLonToXY(lat,lon){
-  return { x:Math.round(((lon-(-130))/((-60)-(-130)))*680), y:Math.round(((55-lat)/(55-15))*420) };
+export function renderFinal() {
+  const host = document.getElementById('finalItinerary');
+  if (!host) return;
+  const all = loadSaved();
+  if (!all.length) {
+    host.innerHTML = '<p style="font-size:.85rem;color:var(--muted)">Nenhum roteiro salvo. Crie e salve um roteiro para vê-lo aqui de forma simplificada.</p>';
+    return;
+  }
+  host.innerHTML = all.map(it =>
+    '<div class="panel" style="padding:1rem;margin-bottom:.8rem">'
+    + '<h3 style="margin:0 0 .3rem;font-size:1rem">'+(it.event?.title||'Roteiro')+'</h3>'
+    + '<p style="font-size:.8rem;color:var(--muted);margin:0 0 .6rem">📅 '+(it.event?.date||'')+' · 📍 '+(it.event?.city||'')+' · 💰 '+(it.custo_medio||'')+'</p>'
+    + '<div style="display:grid;gap:.3rem">'
+    + (it.agenda||[]).map(a => '<div style="font-size:.84rem;display:flex;gap:.6rem"><span style="font-weight:700;min-width:48px">'+a.hora+'</span><span>'+a.atividade+'</span></div>').join('')
+    + '</div></div>'
+  ).join('');
 }
  
-function buildMap() {
-  const coast='M 0,120 C 20,90 30,60 45,40 C 60,20 80,5 110,3 C 130,1 145,15 150,30 L 155,28 C 165,18 180,8 200,5 C 220,3 235,15 240,30 C 255,20 270,15 285,20 C 295,25 305,35 310,50 C 340,30 370,20 400,22 C 430,24 445,38 450,55 C 460,45 475,38 490,40 C 510,42 520,55 525,70 L 680,65 L 680,420 L 0,420 Z';
-  const gulf='M 180,310 C 210,280 260,265 310,270 C 350,275 385,295 400,320 C 380,350 340,370 290,370 C 240,370 200,350 180,310 Z';
-  const lakes='M 395,155 C 415,148 435,150 445,160 C 440,170 430,175 415,173 C 400,172 390,165 395,155 Z M 420,173 C 445,168 465,172 470,182 C 465,192 450,195 435,192 C 420,190 412,183 420,173 Z';
-  const cm={'EUA':'#15803d','Canada':'#c41e3a','Mexico':'#006847'};
-  const pins = HOST_CITIES.map(c => {
-    const {x,y}=latLonToXY(c.lat,c.lon); const col=cm[c.country]||'#6b7280';
-    return '<g class="city-pin" data-city="'+c.name+'" style="cursor:pointer">'
-      +'<circle cx="'+x+'" cy="'+y+'" r="11" fill="'+col+'" fill-opacity=".15" stroke="'+col+'" stroke-width="1.5"/>'
-      +'<circle cx="'+x+'" cy="'+y+'" r="5" fill="'+col+'"/>'
-      +'<title>'+c.cc+' '+c.name+' — '+c.matches+' jogos</title></g>';
-  }).join('');
-  const labels = HOST_CITIES.filter(c=>c.matches>=6).map(c => {
-    const {x,y}=latLonToXY(c.lat,c.lon); const short=c.name.split('/')[0].split(' ').slice(0,2).join(' ');
-    const r=x<340; return '<text x="'+(x+(r?13:-13))+'" y="'+(y+4)+'" font-size="9.5" font-family="sans-serif" font-weight="700" fill="#1f2937" text-anchor="'+(r?'start':'end')+'">'+short+'</text>';
-  }).join('');
-  return '<svg width="100%" viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg" style="display:block">'
-    +'<rect width="680" height="420" fill="#dbeafe"/>'
-    +'<path d="'+coast+'" fill="#d1fae5" stroke="#86efac" stroke-width="1.5"/>'
-    +'<path d="'+gulf+'" fill="#bfdbfe"/><path d="'+lakes+'" fill="#bfdbfe"/>'
-    +'<text x="340" y="20" font-size="12" font-family="sans-serif" font-weight="800" fill="#1f2937" text-anchor="middle">Copa do Mundo 2026 — Cidades-Sede</text>'
-    +pins+labels
-    +'<g transform="translate(14,398)"><circle cx="5" cy="5" r="4" fill="#15803d"/><text x="13" y="9" font-size="9" font-family="sans-serif" fill="#4b5563">EUA</text><circle cx="46" cy="5" r="4" fill="#c41e3a"/><text x="54" y="9" font-size="9" font-family="sans-serif" fill="#4b5563">Canada</text><circle cx="100" cy="5" r="4" fill="#006847"/><text x="108" y="9" font-size="9" font-family="sans-serif" fill="#4b5563">Mexico</text></g>'
-    +'</svg>';
+// ── Exportar PDF (jsPDF) ──────────────────────────────────────────────────────
+function exportPDF(it) {
+  const jspdf = window.jspdf;
+  if (!jspdf || !jspdf.jsPDF) { toast('PDF indisponível.'); return; }
+  const doc = new jspdf.jsPDF({ unit: 'pt', format: 'a4' });
+  const ev = it.event || {};
+  let y = 50;
+  doc.setFontSize(20); doc.setTextColor('#15803d');
+  doc.text('Roteiro UrbanFlow', 40, y); y += 28;
+  doc.setFontSize(13); doc.setTextColor('#1f2937');
+  doc.text((ev.title || 'Evento'), 40, y); y += 18;
+  doc.setFontSize(10); doc.setTextColor('#6b7280');
+  doc.text('Data: ' + (ev.date||'-') + '   Local: ' + (ev.venue||ev.city||'-'), 40, y); y += 16;
+  doc.text('Custo médio: ' + (it.custo_medio||'-'), 40, y); y += 24;
+ 
+  doc.setFontSize(12); doc.setTextColor('#15803d'); doc.text('Agenda', 40, y); y += 18;
+  doc.setFontSize(10); doc.setTextColor('#1f2937');
+  (it.agenda||[]).forEach(a => {
+    if (y > 760) { doc.addPage(); y = 50; }
+    doc.text(a.hora + '  -  ' + a.atividade, 48, y); y += 14;
+    if (a.detalhe) { doc.setTextColor('#6b7280'); doc.text('     ' + a.detalhe, 48, y); y += 13; doc.setTextColor('#1f2937'); }
+  });
+ 
+  if ((it.hotels||[]).length) {
+    y += 10; doc.setFontSize(12); doc.setTextColor('#15803d'); doc.text('Hospedagem', 40, y); y += 16;
+    doc.setFontSize(10); doc.setTextColor('#1f2937');
+    it.hotels.forEach(h => { if (y>760){doc.addPage();y=50;} doc.text('• ' + h.nome, 48, y); y += 13; });
+  }
+  doc.save('roteiro-urbanflow.pdf');
 }
  
-async function showCityInfo(city) {
+// ═══════════════════════════════════════════════════════════════════════════════
+// SCREEN: MAPA (Leaflet + OSM)
+// ═══════════════════════════════════════════════════════════════════════════════
+ 
+export async function initMapScreen() {
+  const canvas = document.getElementById('mapCanvas');
+  if (!canvas || typeof L === 'undefined') return;
+  canvas.classList.add('leaflet-host');
+ 
+  if (!_mapInstance) {
+    _mapInstance = L.map(canvas).setView([20, -40], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '© OpenStreetMap',
+    }).addTo(_mapInstance);
+ 
+    // Ao mover/zoom: busca eventos na região visível (Ticketmaster por centro do mapa)
+    let moveTimer = null;
+    _mapInstance.on('moveend', () => {
+      clearTimeout(moveTimer);
+      moveTimer = setTimeout(loadMapEvents, 600);
+    });
+  } else {
+    setTimeout(() => _mapInstance.invalidateSize(), 100);
+  }
+ 
+  await loadMapEvents();
+ 
   const panel = document.getElementById('poiDetails');
-  if (!panel) return;
-  panel.innerHTML = '<div style="padding:1rem"><span class="eyebrow">'+city.country+'</span>'
-    +'<h2 style="margin:.4rem 0 .3rem;font-size:1.05rem">'+city.name+'</h2>'
-    +'<p style="font-size:.82rem;color:var(--muted);margin-bottom:.75rem">'+city.stadium+' · '+city.matches+' jogos</p>'
-    +'<div class="skeleton-card"><span></span><span></span><span></span></div></div>';
+  if (panel) panel.innerHTML =
+    '<div style="padding:1rem"><span class="eyebrow">Mapa interativo</span>'
+    + '<h2 style="margin:.4rem 0 .5rem;font-size:1rem">Eventos por região</h2>'
+    + '<p style="font-size:.85rem;color:var(--muted)">Arraste e use o zoom para explorar. Os marcadores mostram jogos da Copa e eventos da região. Clique em um marcador para detalhes.</p></div>';
+}
  
-  const result = await callClaudeJSON(
-    'Analise a cidade-sede Copa 2026: '+city.name+', '+city.country
-    +'\nEstadio: '+city.stadium+' ('+city.matches+' jogos)'
-    +'\nRetorne JSON: {"nivel_risco":"Alto/Medio/Baixo","melhor_transporte":"string","hotel_tip":"string","curiosidade":"string"}'
-  );
+async function loadMapEvents() {
+  if (!_mapInstance) return;
+  // Limpa marcadores
+  _mapMarkers.forEach(m => _mapInstance.removeLayer(m));
+  _mapMarkers = [];
  
-  if (!result) { panel.innerHTML='<div style="padding:1rem;color:#dc2626">Falha.</div>'; return; }
+  const center = _mapInstance.getCenter();
  
-  panel.innerHTML = '<div style="padding:1rem">'
-    +'<span style="font-size:.72rem;color:var(--muted)">'+city.country+'</span>'
-    +'<h2 style="margin:.3rem 0;font-size:1.05rem">'+city.name+'</h2>'
-    +'<p style="font-size:.82rem;color:var(--muted);margin-bottom:.7rem">'+city.stadium+' · '+city.matches+' jogos</p>'
-    +'<div style="display:grid;gap:.4rem">'
-    +mkCard('<strong>Risco logistico</strong><div style="margin-top:.2rem">'+riskBadge(result.nivel_risco)+'</div>')
-    +mkCard('Transporte: '+result.melhor_transporte)
-    +mkCard('Hospedagem: '+result.hotel_tip)
-    +'<div class="indicator-card" style="padding:.6rem .8rem;border-left:3px solid #15803d"><span style="font-size:.82rem;color:#15803d">Curiosidade: '+result.curiosidade+'</span></div>'
-    +'</div></div>';
+  // Copa (cache) — sempre mostra os que têm coordenadas
+  if (!WC_EVENTS.length) {
+    const wc = await getJSON('/api/v1/events/worldcup');
+    WC_EVENTS = wc?.data || [];
+  }
+  // Ticketmaster na região central do mapa
+  const tm = await getJSON('/api/v1/events/ticketmaster?lat=' + center.lat.toFixed(3) + '&lng=' + center.lng.toFixed(3));
+  const all = [...WC_EVENTS, ...((tm?.data) || [])].filter(e => e.lat && e.lng);
+ 
+  const greenIcon = L.divIcon({ className: '', html: '<div style="width:14px;height:14px;border-radius:50%;background:#15803d;border:2px solid #fff;box-shadow:0 0 0 2px #15803d55"></div>' });
+  const blueIcon  = L.divIcon({ className: '', html: '<div style="width:14px;height:14px;border-radius:50%;background:#0369a1;border:2px solid #fff;box-shadow:0 0 0 2px #0369a155"></div>' });
+ 
+  all.forEach(e => {
+    const icon = e.cat === 'Futebol' ? greenIcon : blueIcon;
+    const m = L.marker([e.lat, e.lng], { icon }).addTo(_mapInstance);
+    m.bindPopup(
+      '<div style="min-width:180px"><strong>'+(e.title||e.evento)+'</strong><br>'
+      + '<span style="font-size:.8rem">📍 '+(e.city||'')+'</span><br>'
+      + (e.venue?'<span style="font-size:.8rem">🏟 '+e.venue+'</span><br>':'')
+      + (e.date?'<span style="font-size:.8rem">📅 '+e.date+(e.time?' '+e.time:'')+'</span><br>':'')
+      + '<button onclick="window.__acesCreateItin(\''+e.id+'\')" style="margin-top:6px;padding:4px 10px;border:none;border-radius:6px;background:#15803d;color:#fff;cursor:pointer;font-size:.8rem">Criar roteiro</button>'
+      + '</div>'
+    );
+    _mapMarkers.push(m);
+  });
+ 
+  // Expõe handler global para o botão do popup
+  window.__acesCreateItin = (id) => {
+    const ev = all.find(x => x.id === id);
+    if (ev) createItinerary(ev);
+  };
+ 
+  const lbl = document.getElementById('mapEventLabel');
+  if (lbl) lbl.textContent = all.length + ' eventos no mapa';
 }
  
 // ═══════════════════════════════════════════════════════════════════════════════
-// SCREEN: ROTAS
+// SCREEN: ROTAS (autocomplete livre + Google Directions)
 // ═══════════════════════════════════════════════════════════════════════════════
  
-// Coordenadas do usuário (definidas pelo main.js após consentimento de localização)
-let _userCoords = null;
-export function setUserCoords(coords) { _userCoords = coords; }
+let _routeOrigin = null, _routeDest = null;
  
 export function initRoutesScreen() {
-  const ds = document.getElementById('routeDestinationSelect');
-  if (ds && ds.options.length<=1) {
-    ds.innerHTML = '<option value="">Selecione a cidade de destino</option>'
-      + HOST_CITIES.map(c=>'<option value="'+c.name+'">'+c.cc+' '+c.name+' — '+c.stadium+'</option>').join('');
-  }
-  // Pré-preenche destino se veio de um planejamento
-  if (_selectedEvent?.city && ds) ds.value = _selectedEvent.city;
+  const oi = document.getElementById('routeOriginInput');
+  if (oi && !oi.value && _userCoords) oi.value = 'Minha localização (GPS)';
  
-  // Melhora o campo de origem (o valor fixo "Minha localização" não geocodifica)
-  const orig = document.getElementById('routeOriginInput');
-  if (orig) {
-    orig.placeholder = 'Hotel, aeroporto ou endereço de partida';
-    if (orig.value === 'Minha localização') orig.value = '';
+  attachAutocomplete('routeOriginInput', 'routeOriginAC', 'geocode', (it) => { _routeOrigin = it.label; });
+  attachAutocomplete('routeDestinationInput', 'routeDestinationAC', 'geocode', (it) => { _routeDest = it.label; });
+ 
+  // Pré-preenche destino se veio de um evento
+  if (_selectedEvent) {
+    const di = document.getElementById('routeDestinationInput');
+    if (di && !di.value) {
+      di.value = (_selectedEvent.venue ? _selectedEvent.venue + ', ' : '') + (_selectedEvent.city || '');
+      _routeDest = di.value;
+    }
   }
  
   const form = document.getElementById('routeForm');
   if (form && !form.dataset.bound) {
-    form.dataset.bound='1';
-    form.addEventListener('submit', async e=>{ e.preventDefault(); await generateRoute(); });
+    form.dataset.bound = '1';
+    form.addEventListener('submit', async (e) => { e.preventDefault(); await generateRoute(); });
   }
 }
  
 async function generateRoute() {
-  const originRaw = (document.getElementById('routeOriginInput')?.value || '').trim();
-  const dest      = document.getElementById('routeDestinationSelect')?.value || '';
-  const mode      = document.getElementById('routeModeSelect')?.value || 'transit';
-  const labels    = { walking:'a pé', transit:'transporte público', drive:'carro/app' };
-  const out       = document.getElementById('routeResult');
+  const oiVal = (document.getElementById('routeOriginInput')?.value || '').trim();
+  const diVal = (document.getElementById('routeDestinationInput')?.value || '').trim();
+  const mode  = document.getElementById('routeModeSelect')?.value || 'transit';
+  const out   = document.getElementById('routeResult');
   if (!out) return;
-  if (!dest) { out.innerHTML = '<div style="color:#dc2626;padding:.5rem">Selecione um destino.</div>'; return; }
  
-  const ci = HOST_CITIES.find(c => c.name === dest) || {};
+  let origin = _routeOrigin || oiVal;
+  if ((/minha localiza/i.test(origin) || !origin) && _userCoords)
+    origin = _userCoords.latitude + ',' + _userCoords.longitude;
+  const dest = _routeDest || diVal;
  
-  // Resolve a origem: texto digitado > coordenadas do GPS > centro da cidade-destino
-  let origin = originRaw;
-  if (!origin && _userCoords) origin = _userCoords.latitude + ',' + _userCoords.longitude;
-  if (!origin) origin = ci.lat + ',' + ci.lon; // fallback: centro da cidade-sede
+  if (!dest) { out.innerHTML = errBox('Informe um destino.'); return; }
+  out.innerHTML = skeleton();
  
-  // Destino para o Google: nome do estádio + cidade (melhor geocodificação)
-  const destQuery = (ci.stadium || dest) + ', ' + dest.split('/')[0];
+  const params = new URLSearchParams({ origin, destination: dest, mode });
+  const route = await getJSON('/api/v1/maps/route?' + params.toString());
  
-  out.innerHTML = '<div class="skeleton-card" style="margin-top:.75rem"><span></span><span></span><span></span></div>'
-    + '<p style="font-size:.8rem;color:var(--muted);margin-top:.4rem">Consultando Google Maps...</p>';
- 
-  // 1) Rota real via Google Maps
-  let route = null;
-  try {
-    const params = new URLSearchParams({ origin, destination: destQuery, mode });
-    const res = await fetch('/api/v1/maps/route?' + params.toString());
-    route = await res.json();
-  } catch (e) { console.error('[Maps]', e); }
- 
-  // 2) Dicas contextuais via IA (em paralelo conceitual)
-  const tips = await callClaudeJSON(
-    'Dicas de mobilidade para chegar ao estádio ' + (ci.stadium || dest) + ' em ' + dest
-    + ' usando ' + (labels[mode] || mode) + ' durante a Copa 2026.'
-    + '\nRetorne JSON: {"dica_1":"dica de mobilidade","dica_2":"dica de segurança","aviso":"aviso de evento ou null","score_conforto":8}'
-  );
- 
-  // ── Sucesso: rota real do Google Maps ──
   if (route && route.ok) {
     const mapImg = route.static_map
-      ? '<img src="' + route.static_map + '" alt="Mapa da rota" style="width:100%;border-radius:12px;display:block;border:1px solid var(--line)" loading="lazy"/>'
-      : '';
-    const stepsHtml = (route.steps || []).slice(0, 6).map((s, i) =>
-      '<div style="display:flex;gap:.6rem;padding:.45rem 0;border-bottom:1px solid var(--line,#eee)">'
-      + '<span style="flex:0 0 22px;height:22px;border-radius:50%;background:#15803d;color:#fff;font-size:.72rem;font-weight:800;display:grid;place-items:center">' + (i+1) + '</span>'
-      + '<div style="flex:1"><p style="font-size:.82rem;margin:0">' + s.instrucao + '</p>'
-      + '<span style="font-size:.74rem;color:var(--muted)">' + s.distancia + (s.duracao ? ' · ' + s.duracao : '') + '</span></div>'
-      + '</div>'
+      ? '<img src="'+route.static_map+'" alt="Rota" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block" loading="lazy"/>' : '';
+    const steps = (route.steps||[]).slice(0,7).map((s,i) =>
+      '<div style="display:flex;gap:.6rem;padding:.45rem 0;border-bottom:1px solid #eee">'
+      + '<span style="flex:0 0 22px;height:22px;border-radius:50%;background:#15803d;color:#fff;font-size:.72rem;font-weight:800;display:grid;place-items:center">'+(i+1)+'</span>'
+      + '<div><p style="font-size:.82rem;margin:0">'+s.instrucao+'</p><span style="font-size:.74rem;color:var(--muted)">'+s.distancia+(s.duracao?' · '+s.duracao:'')+'</span></div></div>'
     ).join('');
- 
-    out.innerHTML = '<div style="display:grid;gap:.6rem;margin-top:.75rem">'
-      + '<div class="panel" style="padding:0;overflow:hidden">'
-      +   mapImg
-      +   '<div style="padding:.9rem">'
-      +     '<span style="font-size:.7rem;font-weight:700;color:#15803d">Rota real — Google Maps</span>'
-      +     '<h3 style="margin:.3rem 0;font-size:1rem">' + (route.origin_address || origin) + ' → ' + (ci.stadium || dest) + '</h3>'
-      +     '<div style="display:flex;flex-wrap:wrap;gap:1rem;margin:.5rem 0">'
-      +       '<span style="font-size:.86rem">⏱ <strong>' + route.duration + '</strong></span>'
-      +       '<span style="font-size:.86rem">📏 <strong>' + route.distance + '</strong></span>'
-      +       '<span style="font-size:.86rem">🚦 ' + (labels[mode] || mode) + '</span>'
-      +     '</div>'
-      +   '</div>'
-      + '</div>'
-      + (stepsHtml ? '<div class="panel" style="padding:.9rem"><strong style="font-size:.82rem">Passo a passo</strong>' + stepsHtml + '</div>' : '')
-      + (tips ? mkCard('💡 ' + tips.dica_1) + mkCard('🛡️ ' + tips.dica_2)
-              + (tips.aviso && tips.aviso !== 'null' ? '<div class="indicator-card" style="padding:.6rem .8rem;border-left:3px solid #d97706"><span style="font-size:.82rem;color:#d97706">⚠️ ' + tips.aviso + '</span></div>' : '') : '')
+    out.innerHTML =
+      '<div style="display:grid;gap:.6rem;margin-top:.75rem"><div class="panel" style="padding:0;overflow:hidden">'+mapImg
+      + '<div style="padding:.9rem"><span style="font-size:.7rem;font-weight:700;color:#15803d">Rota — Google Maps</span>'
+      + '<h3 style="margin:.3rem 0;font-size:1rem">'+route.origin_address+' → '+route.destination_address+'</h3>'
+      + '<div style="display:flex;gap:1rem;flex-wrap:wrap"><span style="font-size:.86rem">⏱ <strong>'+route.duration+'</strong></span><span style="font-size:.86rem">📏 <strong>'+route.distance+'</strong></span></div></div></div>'
+      + (steps?'<div class="panel" style="padding:.9rem"><strong style="font-size:.82rem">Passo a passo</strong>'+steps+'</div>':'')
       + '</div>';
     return;
   }
  
-  // ── Fallback: Google falhou (ex: rota intercontinental a pé). Usa estimativa da IA ──
-  const est = await callClaudeJSON(
-    'Estime uma rota para Copa 2026. Origem: ' + origin + '\nDestino: ' + (ci.stadium || dest) + ', ' + (ci.country || '')
-    + '\nModo: ' + (labels[mode] || mode)
-    + '\nRetorne JSON: {"tempo_estimado":"X h Y min","distancia":"~X km","rota_principal":"descrição 1 linha"}'
-  );
- 
-  const motivo = route?.error ? '<p style="font-size:.78rem;color:var(--muted);margin:.3rem 0 0">Google Maps: ' + route.error + ' — exibindo estimativa.</p>' : '';
- 
-  if (!est && !tips) { out.innerHTML = '<div style="color:#dc2626;margin-top:.5rem">Falha ao gerar rota. Verifique as chaves no Render.</div>'; return; }
- 
-  out.innerHTML = '<div style="display:grid;gap:.6rem;margin-top:.75rem">'
-    + '<div class="panel" style="padding:.9rem">'
-    +   '<span style="font-size:.7rem;font-weight:700;color:var(--muted)">Estimativa — IA</span>'
-    +   '<h3 style="margin:.3rem 0;font-size:1rem">' + (originRaw || 'Origem') + ' → ' + (ci.stadium || dest) + '</h3>'
-    +   (est ? '<div style="display:flex;flex-wrap:wrap;gap:1rem;margin:.5rem 0">'
-    +     '<span style="font-size:.86rem">⏱ <strong>' + est.tempo_estimado + '</strong></span>'
-    +     '<span style="font-size:.86rem">📏 <strong>' + est.distancia + '</strong></span></div>'
-    +     '<div style="background:rgba(21,128,61,.08);border-radius:10px;padding:.65rem .8rem"><p style="font-size:.84rem;margin:0">' + est.rota_principal + '</p></div>' : '')
-    +   motivo
-    + '</div>'
-    + (tips ? mkCard('💡 ' + tips.dica_1) + mkCard('🛡️ ' + tips.dica_2) : '')
-    + '</div>';
+  // Fallback IA (estimativa) quando o Google falha
+  const est = await askAIJSON('Estime a rota de "'+origin+'" até "'+dest+'" de '+mode+'. JSON: {"tempo":"X","distancia":"~Y km","dica":"..."}');
+  out.innerHTML = est
+    ? '<div class="panel" style="padding:.9rem;margin-top:.75rem"><span style="font-size:.7rem;color:var(--muted)">Estimativa</span><h3 style="margin:.3rem 0">'+origin+' → '+dest+'</h3><p style="font-size:.86rem">⏱ '+est.tempo+' · 📏 '+est.distancia+'</p><p style="font-size:.84rem;color:var(--muted)">'+(est.dica||'')+'</p></div>'
+    : errBox('Não foi possível gerar a rota. Verifique a chave do Google Maps.');
 }
  
 // ═══════════════════════════════════════════════════════════════════════════════
-// SCREEN: RECOMENDACOES
+// SCREEN: RECOMENDAÇÕES (Copa + grandes shows do Ticketmaster)
 // ═══════════════════════════════════════════════════════════════════════════════
  
 export async function initRecommendationsScreen() {
   const strip = document.getElementById('contextStrip');
   const list  = document.getElementById('recommendationList');
   if (!list) return;
-  if (strip) {
-    strip.innerHTML = '<span class="context-pill" style="padding:.35rem .8rem;border-radius:999px;font-size:.8rem;font-weight:700">Copa 2026</span>'
-      +' <span class="context-pill" style="padding:.35rem .8rem;border-radius:999px;font-size:.8rem;font-weight:700">NBA / Wimbledon</span>'
-      +' <span class="context-pill" style="padding:.35rem .8rem;border-radius:999px;font-size:.8rem;font-weight:700">F1 / UFC</span>';
+  if (strip) strip.innerHTML =
+    '<span class="context-pill" style="padding:.35rem .8rem;border-radius:999px;font-size:.8rem;font-weight:700">⚽ Copa 2026</span> '
+    + '<span class="context-pill" style="padding:.35rem .8rem;border-radius:999px;font-size:.8rem;font-weight:700">🎵 Grandes shows</span> '
+    + '<span class="context-pill" style="padding:.35rem .8rem;border-radius:999px;font-size:.8rem;font-weight:700">🌎 Eventos por vir</span>';
+  list.innerHTML = skeleton(true);
+ 
+  // Copa: 3 jogos de destaque
+  if (!WC_EVENTS.length) {
+    const wc = await getJSON('/api/v1/events/worldcup');
+    WC_EVENTS = wc?.data || [];
   }
-  list.innerHTML = '<div class="skeleton-card" style="grid-column:1/-1"><span></span><span></span><span></span></div>';
+  const destaque = WC_EVENTS.slice(0, 3);
  
-  const result = await callClaudeJSON(
-    'Recomende 6 grandes eventos esportivos de 2026 para um torcedor brasileiro.'
-    +' Inclua variedade: futebol, basquete, tenis, F1, UFC — nao apenas Copa do Mundo.'
-    +' Retorne array JSON direto (nao envolva em objeto): '
-    +'[{"jogo":"Nome","categoria":"Futebol/Basquete/Tenis/Formula1/MMA","cidade":"Cidade, Pais",'
-    +'"data":"Mes 2026","motivo":"Por que imperdivel (1 frase)","dica":"Dica pratica (1 frase)","emocao":9}]'
-  , 1400);
+  // Ticketmaster: grandes shows de música (próximos)
+  const near = _userCoords ? ('&lat='+_userCoords.latitude.toFixed(3)+'&lng='+_userCoords.longitude.toFixed(3)) : '';
+  const music = await getJSON('/api/v1/events/ticketmaster?classification=Music&keyword=' + near);
+  const shows = (music?.data || []).slice(0, 6);
  
-  const eventos = Array.isArray(result) ? result : (result?.eventos || result?.recomendacoes || []);
+  const recs = [...destaque, ...shows];
+  if (!recs.length) { list.innerHTML = errBox('Falha ao carregar recomendações.'); return; }
  
-  if (!eventos.length) {
-    list.innerHTML = '<div style="grid-column:1/-1;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:1rem;color:#dc2626;text-align:center">Falha ao carregar. Verifique OPENAI_KEY no Render.</div>';
-    return;
-  }
- 
-  const cMap={'Futebol':'#15803d','Basquete':'#ea580c','Tenis':'#ca8a04','Formula1':'#dc2626','MMA':'#7c3aed','Beisebol':'#0369a1'};
- 
-  list.innerHTML = eventos.map(ev => {
-    const emocao = parseInt(ev.emocao)||parseInt(ev.nivel_emocao)||7;
-    const col    = cMap[ev.categoria] || '#6b7280';
-    const dica   = ev.dica || ev.dica_viagem || '';
-    return '<div class="card recommendation-card" style="display:flex;flex-direction:column;gap:.45rem;border-left:3px solid '+col+'">'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
-      +'<span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700;background:'+col+'18;color:'+col+';border:1px solid '+col+'33">'+ev.categoria+'</span>'
-      +'<span style="font-size:.75rem;font-weight:800;color:'+col+'">'+emocao+'/10</span>'
-      +'</div>'
-      +'<h3 style="font-size:.96rem;margin:0;line-height:1.3">'+ev.jogo+'</h3>'
-      +'<p style="font-size:.82rem;color:var(--muted);margin:0">'+ev.cidade+' · '+ev.data+'</p>'
-      +'<p style="font-size:.84rem;margin:0">'+ev.motivo+'</p>'
-      +'<div style="background:var(--line,#e5e7eb);border-radius:999px;height:4px">'
-      +'<div style="width:'+Math.round(emocao/10*100)+'%;background:'+col+';height:4px;border-radius:999px"></div>'
-      +'</div>'
-      +(dica ? '<div style="background:'+col+'12;border-radius:10px;padding:.4rem .7rem"><span style="font-size:.78rem;color:'+col+'">' + dica + '</span></div>' : '')
-      +'</div>';
+  list.innerHTML = recs.map(e => {
+    const col = catColor(e.cat);
+    const isWC = e.cat === 'Futebol';
+    return '<div class="card recommendation-card" style="display:flex;flex-direction:column;gap:.5rem;border-left:3px solid '+col+'">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+badge(isWC?'⚽ Copa do Mundo':'🎵 '+(e.cat||'Evento'), col)+'</div>'
+      + '<h3 style="font-size:.96rem;margin:0;line-height:1.3">'+(e.title||e.evento)+'</h3>'
+      + '<p style="font-size:.82rem;color:var(--muted);margin:0">📍 '+(e.city||'')+(e.country?', '+e.country:'')+'</p>'
+      + (e.date?'<p style="font-size:.82rem;margin:0">📅 '+e.date+(e.time?' · '+e.time:'')+'</p>':'')
+      + '<button class="button button-primary" style="width:100%;margin-top:auto" data-recid="'+e.id+'">Criar roteiro</button>'
+      + '</div>';
   }).join('');
+ 
+  list.querySelectorAll('[data-recid]').forEach(b =>
+    b.addEventListener('click', () => {
+      const ev = recs.find(x => x.id === b.dataset.recid);
+      if (ev) createItinerary(ev);
+    }));
+}
+ 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Utilidades de navegação/toast (compartilhadas com main.js)
+// ═══════════════════════════════════════════════════════════════════════════════
+ 
+function goTo(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('is-active'));
+  document.getElementById('screen-' + screenId)?.classList.add('is-active');
+  document.querySelectorAll('.nav-link').forEach(l =>
+    l.classList.toggle('is-active', l.dataset.screenTarget === screenId));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+ 
+function toast(msg) {
+  const region = document.getElementById('toastRegion');
+  if (!region) { console.log('[toast]', msg); return; }
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  el.style.cssText = 'background:#15803d;color:#fff;padding:.7rem 1.1rem;border-radius:10px;margin-top:.5rem;box-shadow:0 6px 20px rgba(0,0,0,.2);font-size:.86rem';
+  region.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
 }
