@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from .integrations import ExternalAPI
+from .database import db
 
 # Raiz do projeto = pasta que contém /api, /src e index.html (independe do CWD do Render)
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,7 +17,6 @@ api = ExternalAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"])
 
-# Serve /src com caminho ABSOLUTO (CSS, JS, imagens) — corrige 404 de estáticos no deploy
 app.mount("/src", StaticFiles(directory=str(BASE_DIR / "src")), name="static")
 
 
@@ -27,6 +27,14 @@ async def serve_root():
 @app.get("/api/v1/diag")
 async def diag():
     return {"keys_loaded": api.status()}
+
+@app.post("/api/v1/roteiros")
+async def salvar_roteiro(req: dict):
+    return await db.salvar_roteiro(req["email"], req["titulo"], req["dados"])
+
+@app.get("/api/v1/roteiros")
+async def listar_roteiros(email: str):
+    return await db.listar_roteiros(email)
 
 # ── IA (Gemini + fallback) ────────────────────────────────────────────────────
 class AIRequest(BaseModel):
