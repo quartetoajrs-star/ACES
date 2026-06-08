@@ -1,0 +1,857 @@
+/*
+  ============================================================
+  12-copa-theme.css — Tema "Gramado & Troféu"
+  Copa do Mundo 2026 
+  ============================================================
+*/
+
+/* ── APP SHELL ─────────────────────────────────────────── */
+
+.app-shell {
+  background:
+    radial-gradient(760px 440px at 82% -12%, rgba(21, 128, 61, 0.07), transparent 72%),
+    radial-gradient(520px 360px at 22% 12%, rgba(251, 191, 36, 0.05), transparent 70%),
+    linear-gradient(90deg, rgba(21, 128, 61, 0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(21, 128, 61, 0.03) 1px, transparent 1px),
+    var(--bg);
+  background-size: auto, auto, 42px 42px, 42px 42px, auto;
+}
+
+/* ── HEADER ─────────────────────────────────────────────── */
+
+.app-header {
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(520px 220px at 72% -70%, rgba(21, 128, 61, 0.08), transparent 72%),
+    rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 10px 28px rgba(20, 83, 45, 0.05);
+}
+
+/* Texto "UrbanFlow" no header */
+.brand strong,
+.brand .hero-wordmark strong,
+.nav-brand strong,
+.preview-topbar strong {
+  color: var(--ink);
+}
+
+.brand small,
+.nav-brand small {
+  color: var(--muted);
+}
+
+/* Ícones do header */
+.header-icon {
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+  color: var(--muted);
+}
+
+.header-icon:hover {
+  border-color: var(--sky);
+  background: var(--sky-soft);
+  color: var(--ink);
+}
+
+/* Brand mark (bolinha da logo) */
+.brand-mark {
+  border-color: var(--line);
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(21, 128, 61, 0.15), 0 0 20px rgba(21, 128, 61, 0.10);
+}
+
+/* ── NAVEGAÇÃO LATERAL / FLOATING NAV ───────────────────── */
+
+.primary-nav {
+  border-color: var(--line);
+  background:
+    radial-gradient(250px 260px at 44% 5%, rgba(21, 128, 61, 0.07), transparent 70%),
+    rgba(255, 255, 255, 0.98);
+  box-shadow: 14px 0 42px rgba(20, 83, 45, 0.05);
+}
+
+/* Imagem decorativa no topo do nav */
+.primary-nav::before {
+  border-color: var(--line);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0), rgba(244, 248, 241, 0.4)),
+    url("../../assets/img/urbanflow-symbol.png") center 52% / 78% auto no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6), 0 22px 48px rgba(20, 83, 45, 0.07);
+}
+
+/* Links de navegação */
+.nav-link {
+  color: var(--muted);
+}
+
+.nav-link .line-icon {
+  color: var(--muted);
+}
+
+.nav-link.is-active,
+.nav-link:hover {
+  border-color: rgba(21, 128, 61, 0.28);
+  background: linear-gradient(90deg, rgba(21, 128, 61, 0.12), rgba(251, 191, 36, 0.06));
+  color: var(--ink);
+  box-shadow: inset 3px 0 0 var(--sky), 0 12px 30px rgba(20, 83, 45, 0.06);
+}
+
+/* Floating nav (mobile) */
+.floating-nav {
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 42px rgba(20, 83, 45, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.floating-action {
+  background: var(--bg-soft);
+  color: var(--muted);
+}
+
+.floating-action.is-active,
+.floating-action:hover {
+  background: linear-gradient(145deg, var(--sky-soft), rgba(251, 191, 36, 0.10));
+  color: var(--sky);
+}
+
+/* ── SCREEN HEADING ─────────────────────────────────────── */
+
+.screen-heading {
+  border-color: var(--line);
+  background:
+    radial-gradient(420px 180px at 82% 6%, rgba(21, 128, 61, 0.07), transparent 74%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 241, 0.88));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 20px 54px rgba(20, 83, 45, 0.06);
+}
+
+.screen-heading h1 {
+  color: var(--ink);
+}
+
+.screen-heading .eyebrow {
+  border-color: rgba(21, 128, 61, 0.36);
+  background: rgba(21, 128, 61, 0.08);
+  color: var(--sky);
+}
+
+.screen-subtitle {
+  color: var(--muted);
+}
+
+/* Grade de fundo do screen-heading */
+.screen-heading::before {
+  background:
+    linear-gradient(90deg, rgba(21, 128, 61, 0.05) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(21, 128, 61, 0.04) 1px, transparent 1px);
+  background-size: 42px 42px, 42px 42px;
+}
+
+/* Detalhe decorativo (troféu/mapa no canto) */
+.screen-heading::after {
+  opacity: 0.5;
+  background:
+    radial-gradient(circle at 83% 52%, rgba(255,255,255,0.9) 0 5px, rgba(251, 191, 36, 0.7) 6px 13px, transparent 14px),
+    radial-gradient(ellipse at 42% 112%, transparent 44%, rgba(21, 128, 61, 0.6) 46% 52%, transparent 54%),
+    radial-gradient(ellipse at 62% 116%, transparent 43%, rgba(251, 191, 36, 0.5) 45% 51%, transparent 53%),
+    linear-gradient(90deg, rgba(21, 128, 61, 0.18), transparent 72%);
+}
+
+/* ── CARDS E PAINÉIS ─────────────────────────────────────── */
+
+.panel,
+.card,
+.indicator-card,
+.agenda-item,
+.itinerary-item,
+.rating-card,
+.timeline-row,
+.logic-card,
+.recommendation-card,
+.pdf-document {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 241, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 18px 46px rgba(20, 83, 45, 0.07);
+}
+
+/* ── WELCOME HERO ────────────────────────────────────────── */
+
+.welcome-hero {
+  border-color: var(--line);
+  background:
+    radial-gradient(560px 320px at 78% 28%, rgba(21, 128, 61, 0.09), transparent 72%),
+    radial-gradient(440px 300px at 83% 72%, rgba(251, 191, 36, 0.07), transparent 70%),
+    linear-gradient(90deg, rgba(21, 128, 61, 0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(21, 128, 61, 0.03) 1px, transparent 1px),
+    rgba(255, 255, 255, 0.96);
+  box-shadow: 0 26px 70px rgba(20, 83, 45, 0.08);
+}
+
+/* Wordmark "UrbanFlow" na welcome */
+.hero-lockup {
+  border: none;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.hero-lockup-mark {
+  border-color: var(--line);
+  background: #ffffff;
+}
+
+.hero-wordmark strong {
+  color: var(--ink);
+}
+
+.hero-wordmark small {
+  color: var(--muted);
+}
+
+.welcome-copy {
+  color: var(--ink);
+}
+
+.welcome-copy h1,
+.welcome-copy p {
+  color: var(--ink);
+}
+
+/* ── PREVIEW CARD (dashboard demo) ──────────────────────── */
+
+.app-preview-card {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 241, 0.92));
+  box-shadow: inset 0 0 0 1px var(--line-soft), 0 28px 68px rgba(20, 83, 45, 0.08);
+}
+
+.preview-stats {
+  border: 1px solid rgba(21, 128, 61, 0.18);
+  background:
+    linear-gradient(90deg, rgba(21, 128, 61, 0.08), rgba(251, 191, 36, 0.06));
+  color: var(--ink);
+}
+
+.preview-stats span {
+  color: var(--muted);
+}
+
+.preview-topbar span:last-child {
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 50% 38%, transparent 0 4px, var(--muted) 5px 7px, transparent 8px),
+    radial-gradient(ellipse at 50% 74%, transparent 0 8px, var(--muted) 9px 10px, transparent 11px);
+}
+
+/* ── MAPA ─────────────────────────────────────────────────── */
+
+.map-canvas {
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(260px 180px at 78% 24%, rgba(251, 191, 36, 0.08), transparent 70%),
+    radial-gradient(220px 160px at 22% 78%, rgba(21, 128, 61, 0.12), transparent 70%),
+    linear-gradient(90deg, rgba(21, 128, 61, 0.05) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(21, 128, 61, 0.04) 1px, transparent 1px),
+    #eef5ec;
+  background-size: auto, auto, 48px 48px, 48px 48px, auto;
+  box-shadow: 0 18px 42px rgba(20, 83, 45, 0.07), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.map-grid {
+  background:
+    linear-gradient(135deg, rgba(21, 128, 61, 0.07), transparent 55%),
+    linear-gradient(35deg, rgba(21, 128, 61, 0.07), transparent 50%),
+    radial-gradient(circle at 70% 68%, rgba(251, 191, 36, 0.08), transparent 22%);
+}
+
+.map-road {
+  background:
+    linear-gradient(90deg, rgba(20, 83, 45, 0.10), rgba(20, 83, 45, 0.03)),
+    rgba(20, 83, 45, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* ── INPUTS / FORMULÁRIOS ────────────────────────────────── */
+
+.field input,
+.field select,
+.field textarea {
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--ink);
+  box-shadow: inset 0 1px 2px rgba(20, 83, 45, 0.04);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--sky);
+  box-shadow: 0 0 0 3px var(--sky-soft);
+  outline: none;
+}
+
+/* ── BADGES E PILLS ──────────────────────────────────────── */
+
+.badge,
+.status-pill {
+  border-color: rgba(21, 128, 61, 0.28);
+  background: var(--sky-soft);
+  color: var(--sky);
+}
+
+.badge-soft,
+.context-pill {
+  border-color: var(--line);
+  background: var(--bg-soft);
+  color: var(--muted);
+}
+
+.eyebrow {
+  border-color: rgba(251, 191, 36, 0.40);
+  background: rgba(251, 191, 36, 0.10);
+  color: var(--flow-dark);
+}
+
+/* ── BOTÕES ──────────────────────────────────────────────── */
+
+.button-primary {
+  background: linear-gradient(135deg, var(--sky), #22c55e);
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(21, 128, 61, 0.28);
+}
+
+.button-secondary,
+.button-ghost {
+  border-color: var(--line);
+  background: var(--bg-soft);
+  color: var(--ink);
+}
+
+/* ── ALERTAS ─────────────────────────────────────────────── */
+
+.alert-card h3 {
+  color: var(--ink);
+}
+
+.alert-card p {
+  color: var(--muted);
+}
+
+.alert-high .badge,
+.alert-medium .badge {
+  color: #92400e;
+}
+
+.alert-type-crowd .badge,
+.alert-type-risk .badge {
+  color: #991b1b;
+}
+
+.alert-low .badge {
+  color: var(--flow-dark);
+  border-color: rgba(251, 191, 36, 0.36);
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.alert-inline {
+  color: #92400e;
+}
+
+.error-state {
+  color: #991b1b;
+}
+
+.icon-control.danger {
+  border-color: rgba(220, 38, 38, 0.24);
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--risk);
+}
+
+/* ── MODAL / TOAST ───────────────────────────────────────── */
+
+.modal-backdrop {
+  background: rgba(15, 23, 42, 0.40);
+}
+
+/* ── LOGO SIDEBAR ────────────────────────────────────────── */
+
+.nav-brand strong {
+  color: var(--ink);
+}
+
+/* ── QR PREVIEW ──────────────────────────────────────────── */
+
+.qr-preview {
+  border-color: var(--navy);
+  color: var(--ink);
+}
+
+/* ── DESKTOP OVERRIDES (>1020px) ─────────────────────────── */
+
+@media (min-width: 1020px) {
+  .primary-nav {
+    border-right-color: var(--line);
+    background:
+      radial-gradient(260px 240px at 60% 0%, rgba(21, 128, 61, 0.07), transparent 68%),
+      rgba(255, 255, 255, 0.98);
+  }
+}
+
+/* ── RESPONSIVE HERO (>720px) ────────────────────────────── */
+
+@media (min-width: 720px) {
+  .welcome-hero {
+    background:
+      radial-gradient(540px 340px at 76% 42%, rgba(21, 128, 61, 0.08), transparent 70%),
+      radial-gradient(420px 320px at 86% 66%, rgba(251, 191, 36, 0.06), transparent 72%),
+      linear-gradient(90deg, rgba(21, 128, 61, 0.04) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(21, 128, 61, 0.03) 1px, transparent 1px),
+      #f4f8f1;
+    background-size: auto, auto, 42px 42px, 42px 42px, auto;
+  }
+}
+
+/* ── CORREÇÕES DE ESPECIFICIDADE ALTA ───────────────────── */
+/* Estas regras garantem que o texto escuro vença mesmo quando  */
+/* outras regras usam seletores mais específicos com cor branca. */
+
+/* Header: cor de texto escura */
+.app-header,
+.app-header * {
+  color: inherit;
+}
+
+.app-header {
+  color: var(--ink);
+}
+
+/* Nav-link ativo dentro de .primary-nav (alta especificidade) */
+.primary-nav .nav-link.is-active,
+.primary-nav .nav-link:hover {
+  color: var(--ink);
+}
+
+.primary-nav .nav-link {
+  color: var(--muted);
+}
+
+/* Floating nav ativo (sobrescreve 07-component-responsive) */
+.floating-nav .floating-action.is-active,
+.floating-nav .floating-action:hover {
+  background: linear-gradient(145deg, var(--sky-soft), rgba(251, 191, 36, 0.10));
+  color: var(--sky);
+}
+
+/* Sombras escuras pesadas → sombras verdes suaves */
+.app-preview-card {
+  box-shadow: inset 0 0 0 1px var(--line-soft), 0 28px 68px rgba(20, 83, 45, 0.08) !important;
+}
+
+.hero-lockup {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 24px 60px rgba(20, 83, 45, 0.07) !important;
+}
+
+/* Acentos teal (#00e5d3) antigos → dourado Copa */
+.alert-low::before,
+[class*="flow-accent"] {
+  background: var(--flow);
+}
+
+/* Inputs: sobrescreve navy-deep que veio de var(--navy-deep) */
+.field input,
+.field select,
+.field textarea,
+input, select, textarea {
+  background-color: #ffffff !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+/* Floating nav mobile pesado */
+.floating-nav {
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: 0 -4px 24px rgba(20, 83, 45, 0.08) !important;
+}
+
+/* ============================================================
+   CORREÇÕES v2 — Baseadas na revisão visual do usuário
+   ============================================================ */
+
+/* ── FIX 1: "Urban" do wordmark hero precisa ser visível ── */
+/* !important necessário: 07-responsive-headings.css tem regra
+   de mesma especificidade mas carrega antes de nós. */
+.hero-wordmark strong,
+.hero-wordmark > strong,
+.hero-wordmark strong > span:first-child {
+  color: var(--navy) !important;
+}
+
+/* ── FIX 2: Labels de campos apagados (imgs 2, 5, 7, 9) ── */
+/* .field span é o label acima dos inputs. var(--muted) era
+   fraco demais no fundo claro. */
+.field span,
+.field label,
+.field > span {
+  color: var(--ink) !important;
+  font-weight: 700;
+}
+
+/* Placeholder dos inputs um pouco mais visível que antes */
+.field input::placeholder,
+.field textarea::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Texto digitado e opções do select */
+.field select option {
+  background: #ffffff !important;
+  color: var(--ink) !important;
+}
+
+/* ── FIX 3: Alert cards escuros (imgs 3, 7, 8) ── */
+/* 10-visual-polish.css tem background hardcoded escuro com
+   mesma especificidade — carrega antes de nós, então ganhamos. */
+.alert-card {
+  border-color: var(--line) !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 241, 0.92)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 8px 20px rgba(20, 83, 45, 0.06) !important;
+}
+
+/* Cada tipo de alerta mantém seu tom colorido, mas em fundo claro */
+.alert-high,
+.alert-medium {
+  background: linear-gradient(160deg, rgba(245, 158, 11, 0.10), rgba(255, 255, 255, 0.97)) !important;
+  border-color: rgba(245, 158, 11, 0.28) !important;
+}
+
+.alert-type-crowd,
+.alert-type-risk {
+  background: linear-gradient(160deg, rgba(220, 38, 38, 0.10), rgba(255, 255, 255, 0.97)) !important;
+  border-color: rgba(220, 38, 38, 0.22) !important;
+}
+
+.alert-low {
+  background: linear-gradient(160deg, rgba(21, 128, 61, 0.10), rgba(255, 255, 255, 0.97)) !important;
+  border-color: rgba(21, 128, 61, 0.22) !important;
+}
+
+/* Texto dentro dos alert-cards */
+.alert-card h3 {
+  color: var(--ink) !important;
+}
+
+.alert-card p {
+  color: var(--muted) !important;
+}
+
+/* Badges de nível dentro dos alertas */
+.alert-high .badge,
+.alert-medium .badge {
+  color: #92400e !important;
+  background: rgba(245, 158, 11, 0.16) !important;
+  border-color: rgba(245, 158, 11, 0.36) !important;
+}
+
+.alert-type-crowd .badge,
+.alert-type-risk .badge {
+  color: #991b1b !important;
+  background: rgba(220, 38, 38, 0.12) !important;
+  border-color: rgba(220, 38, 38, 0.36) !important;
+}
+
+.alert-low .badge {
+  color: #166534 !important;
+  background: rgba(21, 128, 61, 0.12) !important;
+  border-color: rgba(21, 128, 61, 0.30) !important;
+}
+
+/* ── FIX 4: POI popup (poi-details) escuro (img 6) ── */
+.poi-details {
+  border-color: var(--line) !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 241, 0.92)) !important;
+  color: var(--ink) !important;
+  box-shadow: 0 18px 46px rgba(20, 83, 45, 0.08) !important;
+}
+
+/* Texto de aviso dentro do popup (ex: "Alta densidade detectada") */
+.poi-details .alert-inline {
+  border-color: rgba(245, 158, 11, 0.36) !important;
+  background: rgba(245, 158, 11, 0.10) !important;
+  color: #92400e !important;
+}
+
+/* ── FIX 5: Subtítulo apagado no mapa (img 5) ── */
+/* "Expo Mobilidade Urbana - São Paulo" usa .screen-subtitle */
+.screen-subtitle {
+  color: var(--ink) !important;
+  opacity: 0.75;
+}
+
+/* ── FIX 6: Card rota alternativa (img 7) — teal antigo ── */
+.alternative-route {
+  border-color: rgba(21, 128, 61, 0.28) !important;
+  background: linear-gradient(150deg, rgba(21, 128, 61, 0.08), rgba(255, 255, 255, 0.97)) !important;
+}
+
+.alternative-route strong,
+.alternative-route p,
+.alternative-route span {
+  color: var(--ink) !important;
+}
+
+/* ── FIX 7: poi-card lista (img 4) — verificação adicional ── */
+.poi-card {
+  border-color: var(--line) !important;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 241, 0.92)) !important;
+  box-shadow: 0 4px 12px rgba(20, 83, 45, 0.06) !important;
+}
+
+.poi-card strong {
+  color: var(--ink) !important;
+}
+/* Logo "Urban" verde: editado diretamente no PNG — nenhum CSS necessário. */
+
+/* ════════════════════════════════════════════════════════════
+   VARREDURA FINAL — Acentos teal antigos → dourado Copa
+   O tema original usava #00e5d3 (teal/Flow) como segunda cor.
+   Na paleta Copa, "Flow" virou dourado #fbbf24 — esses overrides
+   garantem que TODOS os acentos decorativos sigam a paleta.
+   ════════════════════════════════════════════════════════════ */
+
+/* Curva "flow" decorativa no canto dos event-cards */
+.event-card::after {
+  border-color: rgba(251, 191, 36, 0.20) !important;
+}
+
+/* Pills e badges com acento teal */
+.context-pill {
+  border-color: rgba(251, 191, 36, 0.30) !important;
+  background: rgba(251, 191, 36, 0.10) !important;
+  color: var(--flow-dark) !important;
+}
+
+/* Button-primary shadow (era halo teal) */
+.button-primary {
+  box-shadow: 0 12px 28px rgba(21, 128, 61, 0.20) !important;
+}
+
+/* Floating nav gradiente ativo */
+.floating-nav .floating-action.is-active,
+.floating-nav .floating-action:hover {
+  background: linear-gradient(145deg, rgba(21, 128, 61, 0.10), rgba(251, 191, 36, 0.10)) !important;
+}
+
+/* Component-responsive: nav-link ativo no mobile */
+.primary-nav .nav-link.is-active,
+.primary-nav .nav-link:hover {
+  background: linear-gradient(90deg, rgba(21, 128, 61, 0.12), rgba(251, 191, 36, 0.06)) !important;
+}
+
+/* Event-dashboard hero gradient (era teal) */
+.event-dashboard-hero,
+.dashboard-hero {
+  background: linear-gradient(160deg, rgba(21, 128, 61, 0.10), var(--surface)) !important;
+}
+
+/* Visual-polish: bordas e backgrounds decorativos teal */
+.layer-icon,
+.layer-button.is-active,
+.timeline-row.is-current {
+  border-color: rgba(251, 191, 36, 0.32) !important;
+  background: rgba(251, 191, 36, 0.08) !important;
+}
+
+/* Gradiente linha do tempo (teal+azul → verde+dourado) */
+[class*="timeline"][class*="gradient"],
+.timeline-progress,
+.progress-bar {
+  background: linear-gradient(90deg, rgba(21, 128, 61, 0.86), rgba(251, 191, 36, 0.86)) !important;
+}
+
+/* Brand-system: acento teal residual */
+.preview-stats {
+  border-color: rgba(251, 191, 36, 0.22) !important;
+  background: linear-gradient(90deg, rgba(21, 128, 61, 0.08), rgba(251, 191, 36, 0.06)) !important;
+}
+
+/* Recomendações: borda lateral antes era teal */
+.recommendation-card::before,
+.recommendation-card {
+  border-left-color: var(--flow) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   LAYOUT — Barra de navegação HORIZONTAL no topo
+   Substitui sidebar vertical por barra horizontal abaixo do header.
+   ════════════════════════════════════════════════════════════ */
+
+@media (min-width: 1020px) {
+  /* Grid: uma coluna só (sem sidebar à esquerda) */
+  .app-shell {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  /* Conteúdo principal: ocupa largura total */
+  .main-content {
+    width: min(100%, calc(var(--container) + 2rem)) !important;
+    margin: 0 auto !important;
+  }
+
+  /* Nav horizontal logo abaixo do header */
+  .primary-nav {
+    position: sticky !important;
+    top: 73px !important;
+    z-index: 20 !important;
+    /* Grid horizontal: links lado a lado */
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 0.35rem !important;
+    /* Largura total e altura compacta */
+    grid-template-columns: none !important;
+    grid-auto-flow: column !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    height: auto !important;
+    /* Espaçamento e fundo claro */
+    padding: 0.65rem 1.5rem !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--line) !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    box-shadow: 0 4px 12px rgba(20, 83, 45, 0.04) !important;
+    backdrop-filter: blur(10px);
+  }
+
+  /* Esconde o símbolo gigante que ficava no topo da sidebar */
+  .primary-nav::before {
+    display: none !important;
+    content: none !important;
+  }
+
+  /* Esconde brand-mini dentro do nav (não faz sentido em horizontal) */
+  .primary-nav .nav-brand,
+  .primary-nav .nav-brand-mini {
+    display: none !important;
+  }
+
+  /* Links: compactos lado a lado */
+  .primary-nav .nav-link {
+    flex: 0 0 auto !important;
+    min-height: 38px !important;
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.92rem !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+  }
+
+  /* Estado ativo: faixa inferior em vez de lateral */
+  .primary-nav .nav-link.is-active {
+    background: linear-gradient(180deg, transparent 60%, rgba(21, 128, 61, 0.10)) !important;
+    box-shadow: inset 0 -3px 0 var(--sky) !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   PREVIEW MAP — Substitui mapa SVG por foto de estádio Copa 2026
+   ════════════════════════════════════════════════════════════ */
+
+/* Esconde todos os elementos decorativos do mapa SVG */
+.preview-map > * {
+  display: none !important;
+}
+
+/* Mostra a foto de estádio como fundo */
+.preview-map {
+  background:
+    url("../../assets/img/welcome-stadium.png") center / cover no-repeat !important;
+  min-height: 280px !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: 0 12px 30px rgba(20, 83, 45, 0.10) !important;
+}
+
+/* Esconde "Fluxo seguro / Entrada B" abaixo da imagem */
+.preview-stats {
+  display: none !important;
+}
+
+/* Esconde nome do evento na tela do mapa (ex: "Final Continental 2027 - Rio de Janeiro") */
+#mapEventLabel {
+  display: none !important;
+}
+
+/* Esconde nome do evento no Roteiro Final */
+.final-card h2 {
+  display: none !important;
+}
+/* ════════════════════════════════════════════════════════════
+   AUTOCOMPLETE + MAPA LEAFLET + ROTEIRO
+   ════════════════════════════════════════════════════════════ */
+
+.ac-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #fff;
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 10px;
+  margin-top: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  max-height: 260px;
+  overflow-y: auto;
+  display: none;
+}
+.ac-list.is-open { display: block; }
+.ac-item {
+  padding: .55rem .8rem;
+  font-size: .86rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--ink, #1f2937);
+}
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover, .ac-item.is-active { background: #ecfdf5; }
+
+/* Mapa Leaflet */
+#mapCanvas.leaflet-host {
+  min-height: 520px !important;
+  height: 520px;
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 0 !important;
+}
+.leaflet-container { font-family: 'Manrope', sans-serif; border-radius: 16px; }
+
+/* Roteiro / itinerário */
+.itin-section { margin-bottom: 1rem; }
+.itin-card {
+  background: var(--surface-soft, #f8faf7);
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 12px;
+  padding: .75rem .9rem;
+  margin-bottom: .5rem;
+}
+.itin-place {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: .6rem; padding: .5rem 0; border-bottom: 1px solid #f1f5f9;
+}
+.itin-place:last-child { border-bottom: none; }
+.agenda-edit-row {
+  display: grid; grid-template-columns: 70px 1fr auto; gap: .5rem;
+  align-items: center; padding: .4rem 0;
+}
+.agenda-edit-row input {
+  border: 1px solid var(--line,#e2e8f0); border-radius: 8px; padding: .4rem .6rem;
+  font-size: .84rem; background:#fff; color:var(--ink,#1f2937); width:100%;
+}
+.saved-itin-card {
+  border: 1px solid var(--line,#e2e8f0); border-radius: 12px; padding: .9rem;
+  margin-bottom: .6rem; background:#fff;
+  display:flex; justify-content:space-between; align-items:center; gap:1rem;
+}

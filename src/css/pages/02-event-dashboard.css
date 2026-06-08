@@ -1,0 +1,123 @@
+/* Seleção de evento, cidade e dashboard. */
+
+.country-buttons,
+.city-list,
+.context-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.search-panel,
+.selected-event-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.search-panel {
+  background:
+    linear-gradient(160deg, var(--surface-soft), var(--surface));
+}
+
+.search-panel::before,
+.selected-event-panel::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.search-panel::before {
+  right: -0.9rem;
+  bottom: -1.5rem;
+  width: 172px;
+  height: 96px;
+  border: 15px solid rgba(77, 182, 255, 0.11);
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0 0 999px 0;
+  transform: rotate(20deg);
+}
+
+.selected-event-panel {
+  background:
+    linear-gradient(160deg, rgba(0, 229, 211, 0.1), var(--surface));
+}
+
+.selected-event-panel::before {
+  right: 1rem;
+  top: 1rem;
+  width: 64px;
+  height: 44px;
+  opacity: 0.16;
+  background:
+    linear-gradient(var(--navy), var(--navy)) 0 22px / 10px 22px no-repeat,
+    linear-gradient(var(--navy), var(--navy)) 18px 8px / 12px 36px no-repeat,
+    linear-gradient(var(--navy), var(--navy)) 40px 0 / 14px 44px no-repeat;
+}
+
+.country-button,
+.city-button {
+  min-height: var(--tap);
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-weight: 800;
+  box-shadow: var(--shadow-tiny);
+}
+
+.country-button.is-active,
+.city-button.is-active {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--primary-dark), var(--sky), var(--flow));
+  color: #ffffff;
+}
+
+.dashboard-main {
+  display: grid;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Skyline da marca no rodapé do painel principal do dashboard. */
+.dashboard-main::after {
+  content: "";
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  width: 122px;
+  height: 74px;
+  opacity: 0.16;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--navy), var(--navy)) 0 31px / 14px 43px no-repeat,
+    linear-gradient(var(--navy), var(--navy)) 26px 13px / 18px 61px no-repeat,
+    linear-gradient(var(--navy), var(--navy)) 58px 0 / 20px 74px no-repeat,
+    linear-gradient(var(--navy), var(--navy)) 92px 24px / 16px 50px no-repeat;
+}
+
+.poi-card-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.poi-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 18px;
+  background: linear-gradient(150deg, var(--surface-soft), var(--surface));
+  box-shadow: var(--shadow-tiny);
+}
+
+.poi-card strong {
+  color: var(--ink);
+}
+
+.poi-card small {
+  color: var(--muted);
+  font-weight: 600;
+}
