@@ -1,0 +1,365 @@
+/* Mapa, camadas, marcadores e zonas. */
+
+.map-canvas {
+  position: relative;
+  min-height: min(78vh, 800px);
+  overflow: hidden;
+  border: 1px solid rgba(53, 163, 255, 0.24);
+  border-radius: 32px;
+  background:
+    radial-gradient(260px 180px at 78% 24%, rgba(0, 229, 211, 0.16), transparent 70%),
+    radial-gradient(220px 160px at 22% 78%, rgba(37, 99, 255, 0.22), transparent 70%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 7px, transparent 7px),
+    linear-gradient(22deg, transparent 42%, rgba(255, 255, 255, 0.06) 42% 48%, transparent 48%),
+    linear-gradient(142deg, transparent 45%, rgba(255, 255, 255, 0.05) 45% 51%, transparent 51%),
+    linear-gradient(90deg, rgba(53, 163, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(53, 163, 255, 0.1) 1px, transparent 1px),
+    var(--navy-deep);
+  background-position: center, center, 9% 50%, center, center, 0 0, 0 0, center;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat, repeat, repeat, no-repeat;
+  background-size: auto, auto, 84% 22px, auto, auto, 48px 48px, 48px 48px, auto;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.map-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(53, 163, 255, 0.12), transparent 55%),
+    linear-gradient(35deg, rgba(37, 99, 255, 0.12), transparent 50%),
+    radial-gradient(circle at 70% 68%, rgba(0, 229, 211, 0.12), transparent 22%);
+}
+
+.map-road {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  height: 22px;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Skyline da marca sobre o mapa, ancorando a identidade na tela mais importante do app. */
+.map-brand-skyline {
+  position: absolute;
+  left: 8%;
+  top: 9%;
+  z-index: 1;
+  display: flex;
+  align-items: end;
+  gap: 0.42rem;
+  opacity: 0.3;
+}
+
+.map-brand-skyline span {
+  display: block;
+  width: 22px;
+  border-radius: 7px 7px 0 0;
+  background: linear-gradient(180deg, var(--sky-bright), var(--flow));
+}
+
+.map-brand-skyline span:nth-child(1) {
+  height: 38px;
+}
+
+.map-brand-skyline span:nth-child(2) {
+  height: 62px;
+}
+
+.map-brand-skyline span:nth-child(3) {
+  height: 82px;
+}
+
+.map-brand-skyline span:nth-child(4) {
+  height: 52px;
+}
+
+.map-flow-ribbon {
+  position: absolute;
+  z-index: 2;
+  width: 34%;
+  height: 46%;
+  border: 18px solid rgba(255, 255, 255, 0.72);
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0 0 999px 0;
+  pointer-events: none;
+}
+
+.ribbon-left {
+  left: 24%;
+  bottom: 0;
+  transform: rotate(25deg);
+}
+
+.ribbon-right {
+  right: 17%;
+  bottom: 4%;
+  border-color: rgba(77, 182, 255, 0.34);
+  transform: rotate(44deg);
+}
+
+.road-main {
+  top: 50%;
+  transform: rotate(-7deg);
+}
+
+.road-cross {
+  top: 36%;
+  transform: rotate(33deg);
+}
+
+.route-overlay {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 999px;
+}
+
+.route-overlay-main {
+  left: 18%;
+  top: 48%;
+  width: 58%;
+  height: 7px;
+  background: linear-gradient(90deg, var(--flow), var(--sky));
+  transform: rotate(-7deg);
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.36), 0 10px 20px rgba(18, 178, 154, 0.16);
+}
+
+.route-overlay-alt {
+  left: 21%;
+  top: 60%;
+  width: 62%;
+  height: 4px;
+  border-top: 4px dashed rgba(12, 142, 124, 0.78);
+  transform: rotate(9deg);
+}
+
+.map-marker {
+  position: absolute;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin: -21px 0 0 -21px;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow:
+    0 12px 24px rgba(8, 31, 55, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.map-marker:hover {
+  transform: translateY(-2px) scale(1.04);
+}
+
+/* No desktop, os controles de camada ficam empilhados em lista, dando espaço para o rótulo de cada categoria. */
+.map-controls {
+  overflow: hidden;
+  background: linear-gradient(160deg, var(--surface-soft), var(--surface));
+}
+
+.map-controls h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.98rem;
+}
+
+.map-controls h2::before {
+  content: "";
+  display: inline-block;
+  width: 22px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sky), var(--flow));
+}
+
+.map-controls #layerControls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.46rem;
+  overflow: visible;
+  padding-bottom: 0;
+}
+
+.map-controls .toggle-row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 0.56rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.56rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 18px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  box-shadow: var(--shadow-tiny);
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.layer-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(31, 143, 222, 0.14);
+  border-radius: 12px;
+  background: rgba(231, 242, 252, 0.72);
+  color: var(--primary-dark);
+}
+
+.layer-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.map-controls .toggle-row input {
+  appearance: none;
+  position: relative;
+  justify-self: end;
+  width: 34px;
+  height: 19px;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.map-controls .toggle-row input::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 13px;
+  height: 13px;
+  border: 0;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(6, 35, 63, 0.18);
+  transform: translateX(0);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.map-controls .toggle-row input:checked {
+  border-color: rgba(0, 229, 211, 0.5);
+  background: rgba(0, 229, 211, 0.32);
+}
+
+.map-controls .toggle-row input:checked::after {
+  background: var(--flow);
+  transform: translateX(15px);
+}
+
+.map-controls .toggle-row .layer-label {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-controls .toggle-row:has(input:checked) {
+  border-color: rgba(0, 229, 211, 0.3);
+  background: linear-gradient(160deg, rgba(0, 229, 211, 0.14), var(--surface));
+  color: var(--ink);
+  box-shadow: inset 3px 0 0 var(--flow), var(--shadow-tiny);
+}
+
+.map-controls .toggle-row:has(input:checked) .layer-icon {
+  border-color: rgba(0, 229, 211, 0.3);
+  background: rgba(0, 229, 211, 0.16);
+  color: var(--flow);
+}
+
+.map-controls .toggle-row:hover {
+  transform: translateX(2px);
+  border-color: rgba(53, 163, 255, 0.5);
+  box-shadow: var(--shadow-soft);
+}
+
+.marker-icon {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+}
+
+.marker-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.map-marker.is-selected {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 6px rgba(77, 182, 255, 0.22), 0 14px 28px rgba(0, 50, 82, 0.2);
+}
+
+.marker-hospital,
+.marker-pharmacy {
+  background: linear-gradient(145deg, #4db6ff, #1677c7);
+}
+
+.marker-hotel,
+.marker-transport,
+.marker-entrance {
+  background: linear-gradient(145deg, #19c7ad, var(--flow-dark));
+}
+
+.marker-stadium {
+  background: linear-gradient(145deg, #1f8fde, #0e4d84);
+}
+
+.marker-restaurant,
+.marker-bar {
+  background: linear-gradient(145deg, #5fc9f8, #1f8fde);
+}
+
+.marker-risk,
+.marker-crowd,
+.map-marker.is-crowded {
+  background: linear-gradient(145deg, #f87171, var(--risk));
+  color: #ffffff;
+}
+
+.density-zone,
+.risk-zone {
+  position: absolute;
+  z-index: 5;
+  width: 132px;
+  min-height: 74px;
+  margin: -37px 0 0 -66px;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  border-radius: 28px;
+  background: rgba(220, 38, 38, 0.22);
+  color: #fca5a5;
+  font-size: 0.72rem;
+  font-weight: 900;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(5px);
+}
+
+.risk-zone {
+  border-color: rgba(248, 113, 113, 0.5);
+  background: rgba(220, 38, 38, 0.26);
+  color: #fca5a5;
+}

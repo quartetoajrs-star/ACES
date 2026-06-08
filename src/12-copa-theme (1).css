@@ -1,0 +1,237 @@
+/* Lógica visual, PDF e ajustes mobile. */
+
+.logic-layout,
+.state-showcase {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.logic-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(243, 250, 253, 0.78));
+  box-shadow: var(--shadow-soft);
+}
+
+.logic-card p {
+  margin-bottom: 0;
+}
+
+.logic-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--sky-soft);
+}
+
+.logic-icon::before,
+.logic-icon::after {
+  content: "";
+  position: absolute;
+  border: 2px solid var(--navy);
+}
+
+.weather-icon::before {
+  width: 21px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.weather-icon::after {
+  bottom: 8px;
+  width: 14px;
+  border-width: 2px 0 0;
+  transform: rotate(90deg);
+}
+
+.density-icon {
+  background: var(--risk-soft);
+}
+
+.density-icon::before {
+  width: 24px;
+  height: 24px;
+  border-color: var(--risk);
+  border-radius: 999px;
+}
+
+.density-icon::after {
+  width: 10px;
+  height: 10px;
+  border-color: var(--risk);
+  border-radius: 999px;
+}
+
+.night-icon::before {
+  width: 21px;
+  height: 21px;
+  border-radius: 999px;
+}
+
+.night-icon::after {
+  right: 9px;
+  top: 9px;
+  width: 14px;
+  height: 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sky-soft);
+}
+
+.event-icon {
+  background: #e9fbf7;
+}
+
+.event-icon::before {
+  width: 22px;
+  height: 22px;
+  border-color: var(--flow-dark);
+  border-radius: 8px;
+}
+
+.event-icon::after {
+  width: 8px;
+  height: 8px;
+  border-color: var(--flow-dark);
+  border-radius: 999px;
+}
+
+.pdf-document header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 2px solid var(--primary-dark);
+}
+
+.pdf-row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 0.7rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.pdf-row small {
+  grid-column: 2;
+  color: var(--muted);
+}
+
+.mini-map-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  min-height: 130px;
+  padding: 0.8rem;
+  border-radius: var(--radius);
+  background: #eef8ff;
+}
+
+.mini-map-preview span {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  background: rgba(98, 173, 241, 0.16);
+  color: var(--primary-dark);
+  font-weight: 900;
+}
+
+.qr-preview {
+  display: grid;
+  place-items: center;
+  min-height: 104px;
+  border: 8px solid var(--secondary);
+  background:
+    linear-gradient(90deg, var(--secondary) 12px, transparent 12px) 0 0 / 24px 24px,
+    linear-gradient(0deg, var(--secondary) 12px, transparent 12px) 0 0 / 24px 24px,
+    #ffffff;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+@media (max-width: 420px) {
+  .map-canvas {
+    min-height: 64vh;
+  }
+
+  .map-marker {
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+  }
+
+  .marker-icon,
+  .marker-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .agenda-item {
+    grid-template-columns: 1fr;
+  }
+
+  .itinerary-summary,
+  .impact-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 719px) {
+  .map-layout {
+    gap: 0.75rem;
+  }
+
+  .map-controls {
+    order: 1;
+  }
+
+  /* No celular, os filtros de camada viram chips roláveis na horizontal, mais adequados ao toque. */
+  .map-controls #layerControls {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    scrollbar-width: none;
+  }
+
+  .map-controls #layerControls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .map-controls .toggle-row {
+    flex: 0 0 auto;
+    width: auto;
+    grid-template-columns: 28px max-content 34px;
+    border-radius: 999px;
+  }
+
+  .map-controls .toggle-row .layer-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+  }
+
+  .map-stack {
+    order: 2;
+  }
+
+  .poi-details {
+    position: sticky;
+    bottom: 5.6rem;
+    z-index: 20;
+    order: 3;
+    margin-top: -2.4rem;
+    border-radius: 28px 28px var(--radius) var(--radius);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 -20px 46px rgba(6, 35, 63, 0.16);
+    backdrop-filter: blur(14px);
+  }
+}
