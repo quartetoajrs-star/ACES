@@ -31,6 +31,30 @@ class Database:
                 headers=self.headers
             )
             return response.json() if response.status_code == 200 else []
+        async def salvar_roteiro(self, email, titulo, dados):
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            f"{SUPABASE_URL}/rest/v1/roteiros",
+            headers=self.headers,
+            json={"usuario_email": email, "titulo": titulo, "dados": dados},
+        )
+        return r.json()
+    async def salvar_roteiro(self, email, titulo, dados):
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            f"{SUPABASE_URL}/rest/v1/roteiros",
+            headers=self.headers,
+            json={"usuario_email": email, "titulo": titulo, "dados": dados},
+        )
+        return r.json()
+
+async def listar_roteiros(self, email):
+    async with httpx.AsyncClient() as client:
+        r = await client.get(
+            f"{SUPABASE_URL}/rest/v1/roteiros?usuario_email=eq.{email}&select=*",
+            headers=self.headers,
+        )
+        return r.json() if r.status_code == 200 else []
 
 # Instanciamos o objeto db para ser importado pelo main.py
 db = Database()
