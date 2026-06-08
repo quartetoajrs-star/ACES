@@ -139,17 +139,17 @@ export async function initEventsScreen() {
 async function loadEvents() {
   const list = document.getElementById('eventList');
   if (list) list.innerHTML = skeleton(true);
-
+ 
   const city    = (document.getElementById('homeCityInput')?.value || '').split(',')[0].trim();
   const country = (document.getElementById('homeCountryInput')?.value || '').split(',')[0].trim();
   const keyword = (document.getElementById('eventSearchInput')?.value || '').trim();
-
+ 
   // Catálogo curado (base sempre presente)
   if (!CATALOG.length) {
     const cat = await getJSON('/api/v1/events/catalog');
     CATALOG = cat?.data || [];
   }
-
+ 
   // Ticketmaster ao vivo (enriquecimento)
   const params = new URLSearchParams();
   if (city) params.set('city', city);
@@ -157,7 +157,7 @@ async function loadEvents() {
   params.set('years_ahead', '2');
   const tm = await getJSON('/api/v1/events/ticketmaster?' + params.toString());
   const tmEvents = tm?.data || [];
-
+ 
   // Filtro por texto (catálogo)
   const q = (s) => (s || '').toLowerCase();
   let curated = CATALOG.filter(e => {
@@ -166,7 +166,7 @@ async function loadEvents() {
     const okKw = !keyword || [e.title, e.evento, e.cat, e.city, e.country].some(v => q(v).includes(q(keyword)));
     return okC && okCity && okKw;
   });
-
+ 
   // Janela de 2 anos para os eventos ao vivo (curados podem ter sessões futuras)
   const today = new Date(); today.setHours(0,0,0,0);
   const limit = new Date(today); limit.setFullYear(limit.getFullYear() + 2);
@@ -175,11 +175,11 @@ async function loadEvents() {
     const d = new Date(e.date + 'T00:00:00');
     return d >= today && d <= limit;
   };
-
+ 
   LAST_EVENTS = [...curated, ...tmEvents.filter(inWindow)];
   renderEventCards(LAST_EVENTS);
 }
-
+ 
 function renderEventCards(events) {
   const list = document.getElementById('eventList');
   const label = document.getElementById('eventCountLabel');
@@ -209,7 +209,7 @@ function renderEventCards(events) {
       + '<button class="button button-primary" style="width:100%;margin-top:auto" data-evid="'+e.id+'">'+btnLabel+'</button>'
       + '</div>';
   }).join('');
-
+ 
   list.querySelectorAll('[data-evid]').forEach(btn => {
     btn.addEventListener('click', () => {
       const ev = events.find(x => x.id === btn.dataset.evid);
@@ -219,7 +219,7 @@ function renderEventCards(events) {
     });
   });
 }
-
+ 
 // ── Seletor de sessões (Copa = vários jogos; festival = vários dias) ──────────
 function openSessionPicker(ev) {
   const panel = document.getElementById('selectedEventSummary');
@@ -241,7 +241,7 @@ function openSessionPicker(ev) {
         + '</button>'
       ).join('')
     + '</div></div>';
-
+ 
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   document.getElementById('backToEvents')?.addEventListener('click', () => { panel.innerHTML = ''; });
   panel.querySelectorAll('.session-pick').forEach(b =>
@@ -257,19 +257,125 @@ function openSessionPicker(ev) {
 }
  
 // ═══════════════════════════════════════════════════════════════════════════════
+// SCREEN: AVALIAR LOCAIS (importa locais dos roteiros salvos)
+// ═══════════════════════════════════════════════════════════════════════════════
+ 
+const RATINGS_KEY = 'aces_ratings';
+ 
+function loadRatings() {
+  try { return JSON.parse(localStorage.getItem(userKey(RATINGS_KEY)) || '[]'); } catch { return []; }
+}
+function saveRatings(arr) { localStorage.setItem(userKey(RATINGS_KEY), JSON.stringify(arr)); }
+ 
+// Reúne todos os locais únicos a partir dos roteiros salvos
+function collectPlaces() {
+  const saved = loadSaved();
+  const places = new Map();
+  const add = (nome, tipo, contexto) => {
+    if (!nome) return;
+    const key = nome.toLowerCase();
+    if (!places.has(key)) places.set(key, { nome, tipo, contexto });
+  };
+  saved.forEach(it => {
+    const ev = it.event || {};
+    if (ev.venue) add(ev.venue, 'Local do evento', ev.title || '');
+    (it.hotels || []).forEach(h => add(h.nome, 'Hospedagem', ev.city || ''));
+    (it.restaurants || []).forEach(r => add(r.nome, 'Restaurante', ev.city || ''));
+  });
+  return [...places.values()];
+}
+ 
+let _ratingStars = 0;
+ 
+export function initRatingsScreen() {
+  const sel = document.getElementById('ratingPoiSelect');
+  const starsBox = document.getElementById('ratingStars');
+  const submit = document.getElementById('submitRatingButton');
+ 
+  const places = collectPlaces();
+ 
+  if (sel) {
+    if (!places.length) {
+      sel.innerHTML = '<option value="">Nenhum local — crie e salve um roteiro primeiro</option>';
+    } else {
+      sel.innerHTML = '<option value="">Selecione um local do seu roteiro</option>'
+        + places.map(p => '<option value="'+p.nome.replace(/"/g,'&quot;')+'">'+p.nome+' · '+p.tipo+(p.contexto?' ('+p.contexto+')':'')+'</option>').join('');
+    }
+  }
+ 
+  // Estrelas clicáveis
+  if (starsBox && !starsBox.dataset.bound) {
+    starsBox.dataset.bound = '1';
+    const render = () => {
+      starsBox.innerHTML = [1,2,3,4,5].map(n =>
+        '<span class="star" data-n="'+n+'" style="cursor:pointer;font-size:1.6rem;color:'+(n<=_ratingStars?'#f59e0b':'#d1d5db')+'">★</span>'
+      ).join('');
+      starsBox.querySelectorAll('.star').forEach(s =>
+        s.addEventListener('click', () => { _ratingStars = parseInt(s.dataset.n); render(); }));
+    };
+    render();
+  } else if (starsBox) {
+    _ratingStars = 0;
+    starsBox.querySelectorAll('.star').forEach(s => s.style.color = '#d1d5db');
+  }
+ 
+  if (submit && !submit.dataset.bound) {
+    submit.dataset.bound = '1';
+    submit.addEventListener('click', () => {
+      const local = document.getElementById('ratingPoiSelect')?.value;
+      const coment = document.getElementById('ratingCommentInput')?.value || '';
+      if (!local) { toast('Selecione um local.'); return; }
+      if (!_ratingStars) { toast('Dê uma nota de 1 a 5.'); return; }
+      const arr = loadRatings();
+      arr.unshift({ id: 'r'+Date.now(), local, nota: _ratingStars, comentario: coment, data: Date.now() });
+      saveRatings(arr);
+      _ratingStars = 0;
+      const ci = document.getElementById('ratingCommentInput'); if (ci) ci.value = '';
+      initRatingsScreen();
+      renderRatingsList();
+      toast('Avaliação registrada!');
+    });
+  }
+ 
+  renderRatingsList();
+}
+ 
+function renderRatingsList() {
+  const host = document.getElementById('ratingsList');
+  if (!host) return;
+  const arr = loadRatings();
+  if (!arr.length) {
+    host.innerHTML = '<p style="font-size:.85rem;color:var(--muted)">Nenhuma avaliação ainda.</p>';
+    return;
+  }
+  host.innerHTML = arr.map(r =>
+    '<div class="itin-card"><div style="display:flex;justify-content:space-between;align-items:center">'
+    + '<strong style="font-size:.86rem">'+r.local+'</strong>'
+    + '<span style="color:#f59e0b;font-size:.9rem">'+'★'.repeat(r.nota)+'<span style="color:#d1d5db">'+'★'.repeat(5-r.nota)+'</span></span></div>'
+    + (r.comentario?'<p style="font-size:.82rem;margin:.3rem 0 .4rem;color:var(--muted)">'+r.comentario+'</p>':'')
+    + '<button class="button button-secondary" data-delrating="'+r.id+'" style="padding:.25rem .6rem">✕ Remover</button></div>'
+  ).join('');
+  host.querySelectorAll('[data-delrating]').forEach(b =>
+    b.addEventListener('click', () => {
+      saveRatings(loadRatings().filter(x => x.id !== b.dataset.delrating));
+      renderRatingsList();
+    }));
+}
+ 
+// ═══════════════════════════════════════════════════════════════════════════════
 // SCREEN: BOAS-VINDAS (hero vivo — destaques e próximos eventos)
 // ═══════════════════════════════════════════════════════════════════════════════
-
+ 
 export async function initWelcomeScreen() {
   const featured = document.getElementById('welcomeFeatured');
   const upcoming = document.getElementById('welcomeUpcoming');
   if (!featured && !upcoming) return;
-
+ 
   if (!CATALOG.length) {
     const cat = await getJSON('/api/v1/events/catalog');
     CATALOG = cat?.data || [];
   }
-
+ 
   // Destaques: Copa + 3 grandes eventos
   if (featured) {
     const destaque = CATALOG.slice(0, 4);
@@ -293,7 +399,7 @@ export async function initWelcomeScreen() {
         else createItinerary(ev);
       }));
   }
-
+ 
   // Próximos eventos: ordena por data (curados + sessões da Copa)
   if (upcoming) {
     const flat = [];
@@ -318,7 +424,7 @@ export async function initWelcomeScreen() {
       }));
   }
 }
-
+ 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROTEIRO: criar → pré-visualizar → editar → salvar/PDF
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -606,47 +712,84 @@ export async function initMapScreen() {
  
 async function loadMapEvents() {
   if (!_mapInstance) return;
-  // Limpa marcadores
   _mapMarkers.forEach(m => _mapInstance.removeLayer(m));
   _mapMarkers = [];
  
   const center = _mapInstance.getCenter();
  
-  // Copa (cache) — sempre mostra os que têm coordenadas
-  if (!WC_EVENTS.length) {
-    const wc = await getJSON('/api/v1/events/worldcup');
-    WC_EVENTS = wc?.data || [];
+  if (!CATALOG.length) {
+    const cat = await getJSON('/api/v1/events/catalog');
+    CATALOG = cat?.data || [];
   }
-  // Ticketmaster na região central do mapa
+ 
+  // Achata: eventos simples + cada sessao (jogos da Copa, dias de festival) como pino proprio
+  const flat = [];
+  CATALOG.forEach(e => {
+    const sess = e.sessions || [];
+    if (sess.length) {
+      sess.forEach(s => {
+        if (s.lat != null && s.lng != null)
+          flat.push({ id: s.id, parentId: e.id, cat: s.cat || e.cat,
+            title: e.evento + ' \u2014 ' + s.label, city: s.city, venue: s.venue,
+            date: s.date, time: s.time, lat: s.lat, lng: s.lng });
+      });
+      if (e.lat != null && e.lng != null)
+        flat.push({ id: e.id, cat: e.cat, title: e.title || e.evento,
+          city: e.city, venue: e.venue, date: e.date, time: e.time,
+          lat: e.lat, lng: e.lng, hasSessions: true });
+    } else if (e.lat != null && e.lng != null) {
+      flat.push({ id: e.id, cat: e.cat, title: e.title || e.evento,
+        city: e.city, venue: e.venue, date: e.date, time: e.time, lat: e.lat, lng: e.lng });
+    }
+  });
+ 
   const tm = await getJSON('/api/v1/events/ticketmaster?lat=' + center.lat.toFixed(3) + '&lng=' + center.lng.toFixed(3));
-  const all = [...WC_EVENTS, ...((tm?.data) || [])].filter(e => e.lat && e.lng);
+  (tm?.data || []).forEach(e => { if (e.lat && e.lng) flat.push(e); });
  
-  const greenIcon = L.divIcon({ className: '', html: '<div style="width:14px;height:14px;border-radius:50%;background:#15803d;border:2px solid #fff;box-shadow:0 0 0 2px #15803d55"></div>' });
-  const blueIcon  = L.divIcon({ className: '', html: '<div style="width:14px;height:14px;border-radius:50%;background:#0369a1;border:2px solid #fff;box-shadow:0 0 0 2px #0369a155"></div>' });
+  const iconFor = (cat) => {
+    const c = catColor(cat || 'Evento');
+    return L.divIcon({ className: '', iconSize: [18,18], iconAnchor: [9,9],
+      html: '<div style="width:16px;height:16px;border-radius:50%;background:'+c+';border:2px solid #fff;box-shadow:0 0 0 2px '+c+'66"></div>' });
+  };
  
-  all.forEach(e => {
-    const icon = e.cat === 'Futebol' ? greenIcon : blueIcon;
-    const m = L.marker([e.lat, e.lng], { icon }).addTo(_mapInstance);
+  flat.forEach(e => {
+    const m = L.marker([e.lat, e.lng], { icon: iconFor(e.cat) }).addTo(_mapInstance);
+    const btnLabel = e.hasSessions ? 'Ver atracoes' : 'Criar roteiro';
     m.bindPopup(
-      '<div style="min-width:180px"><strong>'+(e.title||e.evento)+'</strong><br>'
-      + '<span style="font-size:.8rem">📍 '+(e.city||'')+'</span><br>'
-      + (e.venue?'<span style="font-size:.8rem">🏟 '+e.venue+'</span><br>':'')
-      + (e.date?'<span style="font-size:.8rem">📅 '+e.date+(e.time?' '+e.time:'')+'</span><br>':'')
-      + '<button onclick="window.__acesCreateItin(\''+e.id+'\')" style="margin-top:6px;padding:4px 10px;border:none;border-radius:6px;background:#15803d;color:#fff;cursor:pointer;font-size:.8rem">Criar roteiro</button>'
+      '<div style="min-width:190px"><strong>'+(e.title||e.evento)+'</strong><br>'
+      + '<span style="font-size:.8rem">\ud83d\udccd '+(e.city||'')+'</span><br>'
+      + (e.venue?'<span style="font-size:.8rem">\ud83c\udfdf '+e.venue+'</span><br>':'')
+      + (e.date?'<span style="font-size:.8rem">\ud83d\udcc5 '+e.date+(e.time?' '+e.time:'')+'</span><br>':'')
+      + '<button onclick="window.__acesMapClick(\''+(e.parentId||e.id)+'\',\''+e.id+'\','+(e.hasSessions?'true':'false')+')" style="margin-top:6px;padding:5px 12px;border:none;border-radius:6px;background:#15803d;color:#fff;cursor:pointer;font-size:.8rem;font-weight:700">'+btnLabel+'</button>'
       + '</div>'
     );
     _mapMarkers.push(m);
   });
  
-  // Expõe handler global para o botão do popup
-  window.__acesCreateItin = (id) => {
-    const ev = all.find(x => x.id === id);
-    if (ev) createItinerary(ev);
+  window.__acesMapClick = async (parentId, id, hasSessions) => {
+    if (hasSessions) {
+      const ev = CATALOG.find(x => x.id === parentId);
+      if (ev) { goTo('home'); openSessionPicker(ev); }
+      return;
+    }
+    const full = await getJSON('/api/v1/events/find?id=' + encodeURIComponent(id));
+    if (full && !full.error) { createItinerary(full); return; }
+    const live = flat.find(x => x.id === id);
+    if (live) createItinerary(live);
   };
  
   const lbl = document.getElementById('mapEventLabel');
-  if (lbl) lbl.textContent = all.length + ' eventos no mapa';
+  if (lbl) lbl.textContent = flat.length + ' eventos no mapa';
+ 
+  if (flat.length && !_mapCentered) {
+    _mapCentered = true;
+    try {
+      const grp = L.featureGroup(_mapMarkers);
+      _mapInstance.fitBounds(grp.getBounds().pad(0.2));
+    } catch {}
+  }
 }
+let _mapCentered = false;
  
 // ═══════════════════════════════════════════════════════════════════════════════
 // SCREEN: ROTAS (autocomplete livre + Google Directions)
@@ -825,4 +968,4 @@ function toast(msg) {
   el.style.cssText = 'background:#15803d;color:#fff;padding:.7rem 1.1rem;border-radius:10px;margin-top:.5rem;box-shadow:0 6px 20px rgba(0,0,0,.2);font-size:.86rem';
   region.appendChild(el);
   setTimeout(() => el.remove(), 3000);
-}
+ }
