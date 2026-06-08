@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACES-UrbanFlow | Planeamento Inteligente</title>
+    
+    <link rel="icon" type="image/png" href="src/assets/img/logo-urbanflow.png" />
+    <link rel="apple-touch-icon" href="src/assets/img/logo-urbanflow.png" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Urbanist:wght@600;700;800&display=swap" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="src/css/global.css" />
+    <link rel="stylesheet" href="src/css/layout.css" />
+    <link rel="stylesheet" href="src/css/components.css" />
+    <link rel="stylesheet" href="src/css/pages.css" />
+
+    <!-- Leaflet (mapa interativo com zoom/arraste) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <!-- jsPDF (exportar roteiro em PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <a class="brand" href="#welcome" data-screen-target="welcome" aria-label="UrbanFlow">
+          <span class="brand-mark">
+            <img src="src/assets/img/logo-urbanflow.png" alt="" />
+          </span>
+          <span>
+            <strong><span>Urban</span><span>Flow</span></strong>
+            <small id="headerEventLabel">Evento não selecionado</small>
+          </span>
+        </a>
+        <div class="header-actions" aria-label="Ações rápidas">
+          <button class="header-icon" type="button" data-screen-target="notifications" aria-label="Ver alertas">
+            <span class="line-icon icon-bell"></span>
+          </button>
+          <button class="header-icon" type="button" id="accountButton" aria-label="Conta">
+            <span class="line-icon icon-user"></span>
+          </button>
+        </div>
+        <button class="icon-button menu-toggle" type="button" id="menuToggle" aria-expanded="false" aria-controls="primaryNav">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </header>
+ 
+      <nav class="primary-nav" id="primaryNav" aria-label="Navegação principal">
+        <div class="nav-brand" aria-hidden="true">
+          <span class="nav-brand-mark">
+            <img src="src/assets/img/logo-urbanflow.png" alt="" />
+          </span>
+          <strong><span>Urban</span><span>Flow</span></strong>
+        </div>
+        <button class="nav-link is-active" type="button" data-screen-target="welcome"><span class="line-icon icon-home"></span><span>Boas-vindas</span></button>
+        <button class="nav-link" type="button" data-screen-target="home"><span class="line-icon icon-calendar"></span><span>Selecionar evento</span></button>
+        <button class="nav-link" type="button" data-screen-target="dashboard"><span class="line-icon icon-dashboard"></span><span>Dashboard</span></button>
+        <button class="nav-link" type="button" data-screen-target="map"><span class="line-icon icon-map"></span><span>Mapa</span></button>
+        <button class="nav-link" type="button" data-screen-target="routes"><span class="line-icon icon-route"></span><span>Rotas</span></button>
+        <button class="nav-link" type="button" data-screen-target="recommendations"><span class="line-icon icon-star"></span><span>Recomendações</span></button>
+        <button class="nav-link" type="button" data-screen-target="notifications"><span class="line-icon icon-bell"></span><span>Alertas</span></button>
+        <button class="nav-link" type="button" data-screen-target="itinerary"><span class="line-icon icon-list"></span><span>Planejamento</span></button>
+        <button class="nav-link" type="button" data-screen-target="final"><span class="line-icon icon-check"></span><span>Roteiro final</span></button>
+        <button class="nav-link" type="button" data-screen-target="ratings"><span class="line-icon icon-user"></span><span>Avaliar locais</span></button>
+      </nav>
+ 
+      <main class="main-content" id="mainContent">
+                <section class="screen is-active" id="screen-welcome" data-screen="welcome">
+          <div class="uf-hero">
+            <div class="uf-hero-bg" aria-hidden="true"></div>
+            <div class="uf-hero-overlay" aria-hidden="true"></div>
+            <div class="uf-hero-content">
+              <span class="uf-hero-eyebrow">Plataforma inteligente para</span>
+              <h1 class="uf-hero-title">Copa do Mundo<br><span>2026</span></h1>
+              <p class="uf-hero-sub">Planeje, organize e acompanhe cada detalhe dos grandes eventos. Tecnologia, dados e colaboração para entregar experiências inesquecíveis.</p>
+              <div class="uf-hero-actions">
+                <button class="button button-primary" type="button" data-screen-target="home">Planejar evento</button>
+                <button class="button button-light" type="button" data-screen-target="map">Explorar mapa</button>
+              </div>
+              <div class="uf-hero-stats">
+                <div class="uf-stat"><strong>16</strong><span>Cidades</span></div>
+                <div class="uf-stat"><strong>104</strong><span>Jogos</span></div>
+                <div class="uf-stat"><strong>3</strong><span>Países</span></div>
+                <div class="uf-stat"><strong>Milhões</strong><span>de torcedores</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="uf-section">
+            <div class="uf-section-head">
+              <h2>Eventos em destaque</h2>
+              <button class="uf-link" type="button" data-screen-target="home">Ver todos os eventos →</button>
+            </div>
+            <div class="uf-featured" id="welcomeFeatured"></div>
+          </div>
+
+          <div class="uf-section">
+            <div class="uf-section-head"><h2>Recursos da plataforma</h2></div>
+            <div class="uf-features">
+              <article class="uf-feature"><span class="line-icon icon-calendar"></span><strong>Gestão de Eventos</strong><small>Encontre e organize grandes eventos com cronograma, sessões e checklists.</small></article>
+              <article class="uf-feature"><span class="line-icon icon-map"></span><strong>Mapas Interativos</strong><small>Localize estádios e infraestrutura com mapas inteligentes e dinâmicos.</small></article>
+              <article class="uf-feature"><span class="line-icon icon-route"></span><strong>Rotas Contextuais</strong><small>Origem, destino e tempo de deslocamento em tempo real.</small></article>
+              <article class="uf-feature"><span class="line-icon icon-spark"></span><strong>Recomendações</strong><small>Sugestões de jogos, shows e atrações por vir, perto de você.</small></article>
+              <article class="uf-feature"><span class="line-icon icon-list"></span><strong>Roteiros & PDF</strong><small>Monte, edite, salve e exporte seu roteiro completo.</small></article>
+              <article class="uf-feature"><span class="line-icon icon-check"></span><strong>Multiusuário</strong><small>Cada conta com seus próprios roteiros salvos com segurança.</small></article>
+            </div>
+          </div>
+
+          <div class="uf-section">
+            <div class="uf-section-head">
+              <h2>Próximos eventos</h2>
+              <button class="uf-link" type="button" data-screen-target="recommendations">Ver recomendações →</button>
+            </div>
+            <div class="uf-upcoming" id="welcomeUpcoming"></div>
+          </div>
+        </section>
+ 
+        <section class="screen" id="screen-home" data-screen="home">
+          <div class="screen-heading">
+            <span class="eyebrow">Seleção de evento</span>
+            <h1>Encontre seu evento</h1>
+            <p class="screen-subtitle">Filtre por país e cidade, confira o resumo e siga para o painel do evento.</p>
+          </div>
+ 
+          <div class="home-layout">
+            <div class="panel search-panel">
+              <label class="field">
+                <span>Evento ou local</span>
+                <input id="eventSearchInput" type="search" placeholder="Ex.: Rio de Janeiro, Fan Zone, Toronto" autocomplete="off" />
+              </label>
+ 
+              <div class="form-grid">
+                <label class="field" style="position:relative">
+                  <span>País</span>
+                  <input id="homeCountryInput" type="text" placeholder="Digite qualquer país..." autocomplete="off" />
+                  <div class="ac-list" id="homeCountryAC"></div>
+                </label>
+                <label class="field" style="position:relative">
+                  <span>Cidade</span>
+                  <input id="homeCityInput" type="text" placeholder="Digite qualquer cidade..." autocomplete="off" />
+                  <div class="ac-list" id="homeCityAC"></div>
+                </label>
+              </div>
+ 
+              <div class="quick-stats" id="homeQuickStats"></div>
+            </div>
+ 
+            <aside class="panel selected-event-panel" id="selectedEventSummary"></aside>
+          </div>
+ 
+          <div class="section-bar">
+            <h2>Eventos disponíveis</h2>
+            <span id="eventCountLabel"></span>
+          </div>
+          <div class="card-grid event-grid" id="eventList"></div>
+        </section>
+ 
+        <section class="screen" id="screen-country" data-screen="country">
+          <div class="screen-heading">
+            <span class="eyebrow">Filtro geográfico</span>
+            <h1>País, cidade e evento</h1>
+          </div>
+ 
+          <div class="country-layout">
+            <div class="panel">
+              <div class="country-buttons" id="countryButtons"></div>
+            </div>
+            <div class="panel">
+              <h2>Cidades relacionadas</h2>
+              <div class="city-list" id="cityList"></div>
+            </div>
+          </div>
+ 
+          <div class="section-bar">
+            <h2>Eventos filtrados</h2>
+            <span id="countryEventCountLabel"></span>
+          </div>
+          <div class="card-grid" id="countryEventList"></div>
+        </section>
+ 
+        <section class="screen" id="screen-dashboard" data-screen="dashboard">
+          <div class="screen-heading">
+            <span class="eyebrow">Visão geral</span>
+            <h1 id="dashboardTitle">Dashboard do evento</h1>
+          </div>
+          <div class="dashboard-layout" id="dashboardContent"></div>
+        </section>
+ 
+        <section class="screen" id="screen-map" data-screen="map">
+          <div class="screen-heading">
+            <span class="eyebrow">Mapa interativo</span>
+            <h1>Camadas e pontos de interesse</h1>
+          </div>
+ 
+          <div class="map-layout">
+            <aside class="panel map-controls">
+              <h2>Camadas</h2>
+              <div id="layerControls"></div>
+            </aside>
+ 
+            <div class="map-stack">
+              <div class="map-toolbar">
+                <span id="mapEventLabel"></span>
+                <button class="button button-secondary" type="button" data-screen-target="routes">Planejar rota</button>
+              </div>
+              <div class="map-canvas" id="mapCanvas" aria-label="Mapa simulado do evento"></div>
+            </div>
+ 
+            <aside class="panel poi-details" id="poiDetails"></aside>
+          </div>
+        </section>
+ 
+        <section class="screen" id="screen-routes" data-screen="routes">
+          <div class="screen-heading">
+            <span class="eyebrow">Roteirização</span>
+            <h1>Rotas e navegação</h1>
+          </div>
+ 
+          <div class="routes-layout">
+            <form class="panel route-form" id="routeForm">
+              <label class="field" style="position:relative">
+                <span>Origem</span>
+                <input id="routeOriginInput" type="text" placeholder="Seu ponto de partida (qualquer lugar)" autocomplete="off" />
+                <div class="ac-list" id="routeOriginAC"></div>
+              </label>
+              <label class="field" style="position:relative">
+                <span>Destino</span>
+                <input id="routeDestinationInput" type="text" placeholder="Estádio, cidade ou endereço de destino" autocomplete="off" />
+                <div class="ac-list" id="routeDestinationAC"></div>
+              </label>
+              <label class="field">
+                <span>Deslocamento</span>
+                <select id="routeModeSelect">
+                  <option value="walking">A pé</option>
+                  <option value="transit">Transporte público</option>
+                  <option value="drive">Carro/app</option>
+                </select>
+              </label>
+              <button class="button button-primary" type="submit">Gerar rota</button>
+            </form>
+            <div id="routeResult"></div>
+          </div>
+        </section>
+ 
+        <section class="screen" id="screen-recommendations" data-screen="recommendations">
+          <div class="screen-heading">
+            <span class="eyebrow">Sugestões contextuais</span>
+            <h1>Recomendações próximas</h1>
+          </div>
+          <div class="context-strip" id="contextStrip"></div>
+          <div class="card-grid recommendations-grid" id="recommendationList"></div>
+        </section>
+ 
+        <section class="screen" id="screen-itinerary" data-screen="itinerary">
+          <div class="screen-heading">
+            <span class="eyebrow">Pré-evento</span>
+            <h1>Planejamento de itinerário</h1>
+          </div>
+          <div class="itinerary-layout">
+            <div class="panel">
+              <div class="section-bar compact">
+                <h2>Agenda e locais</h2>
+                <span id="agendaCountLabel"></span>
+              </div>
+              <div class="agenda-list" id="agendaList"></div>
+            </div>
+            <div class="panel">
+              <div class="section-bar compact">
+                <h2>Meu roteiro</h2>
+                <button class="button button-secondary" type="button" id="savePreferencesButton">Salvar preferências</button>
+              </div>
+              <div id="itineraryBuilder"></div>
+            </div>
+          </div>
+        </section>
+ 
+        <section class="screen" id="screen-edit" data-screen="edit">
+          <div class="screen-heading">
+            <span class="eyebrow">Edição manual</span>
+            <h1>Editar roteiro</h1>
+          </div>
+          <div id="itineraryEditor"></div>
+        </section>
+ 
+        <section class="screen" id="screen-final" data-screen="final">
+          <div class="screen-heading">
+            <span class="eyebrow">Resumo final</span>
+            <h1>Cronograma completo</h1>
+          </div>
+          <div id="finalItinerary"></div>
+        </section>
+ 
+        <section class="screen" id="screen-ratings" data-screen="ratings">
+          <div class="screen-heading">
+            <span class="eyebrow">Feedback</span>
+            <h1>Avaliação de locais</h1>
+          </div>
+          <div class="ratings-layout">
+            <div class="panel">
+              <label class="field">
+                <span>Local</span>
+                <select id="ratingPoiSelect"></select>
+              </label>
+              <div class="rating-stars" id="ratingStars" aria-label="Nota de 1 a 5"></div>
+              <label class="field">
+                <span>Comentário</span>
+                <textarea id="ratingCommentInput" rows="5" placeholder="Conte como foi a experiência"></textarea>
+              </label>
+              <button class="button button-primary" type="button" id="submitRatingButton">Enviar avaliação</button>
+            </div>
+            <div class="panel">
+              <h2>Avaliações registradas</h2>
+              <div id="ratingsList"></div>
+            </div>
+          </div>
+        </section>
+ 
+        <section class="screen" id="screen-notifications" data-screen="notifications">
+          <div class="screen-heading">
+            <span class="eyebrow">Tempo real</span>
+            <h1>Alertas e notificações</h1>
+          </div>
+          <div class="notification-layout" id="notificationList"></div>
+        </section>
+ 
+        <section class="screen" id="screen-logic" data-screen="logic">
+          <div class="screen-heading">
+            <span class="eyebrow">Sobre a lógica do sistema</span>
+            <h1>Regras simples que tornam o front inteligente</h1>
+          </div>
+ 
+          <div class="logic-layout">
+            <article class="logic-card">
+              <span class="logic-icon weather-icon"></span>
+              <h2>Chuva detectada</h2>
+              <p>Sugere locais cobertos e rotas com menor exposição.</p>
+            </article>
+            <article class="logic-card">
+              <span class="logic-icon density-icon"></span>
+              <h2>Alta densidade</h2>
+              <p>Exibe alerta no mapa e recomenda entrada alternativa.</p>
+            </article>
+            <article class="logic-card">
+              <span class="logic-icon night-icon"></span>
+              <h2>Horário noturno</h2>
+              <p>Prioriza transporte oficial e rotas por vias mais seguras.</p>
+            </article>
+            <article class="logic-card">
+              <span class="logic-icon event-icon"></span>
+              <h2>Evento selecionado</h2>
+              <p>Filtra POIs, alertas, rotas e recomendações pela cidade-sede.</p>
+            </article>
+          </div>
+ 
+          <div class="state-showcase">
+            <article class="panel">
+              <h2>Skeleton loading</h2>
+              <div class="skeleton-card">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </article>
+            <article class="empty-state">Estado vazio: nenhum resultado encontrado para o filtro atual.</article>
+            <article class="error-state">Estado de erro: falha simulada ao buscar dados externos.</article>
+          </div>
+        </section>
+ 
+        <section class="screen" id="screen-audit" data-screen="audit">
+          <div class="screen-heading">
+            <span class="eyebrow">Rastreabilidade</span>
+            <h1>Logs e auditoria técnica</h1>
+          </div>
+          <div class="panel">
+            <div class="table-wrap">
+              <table class="log-table">
+                <thead>
+                  <tr>
+                    <th>Horário</th>
+                    <th>Ação</th>
+                    <th>Origem</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="logTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+ 
+    <div class="floating-actions" aria-label="Ações rápidas">
+      <button class="floating-action" type="button" data-screen-target="map" aria-label="Abrir mapa">
+        <span class="line-icon icon-map"></span>
+        <span>Mapa</span>
+      </button>
+      <button class="floating-action" type="button" data-screen-target="routes" aria-label="Abrir rotas">
+        <span class="line-icon icon-route"></span>
+        <span>Rotas</span>
+      </button>
+      <button class="floating-action" type="button" data-screen-target="recommendations" aria-label="Abrir recomendações">
+        <span class="line-icon icon-spark"></span>
+        <span>Dicas</span>
+      </button>
+      <button class="floating-action" type="button" data-screen-target="itinerary" aria-label="Abrir roteiro">
+        <span class="line-icon icon-list"></span>
+        <span>Roteiro</span>
+      </button>
+    </div>
+ 
+    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+ 
+    <div class="modal-backdrop is-visible" id="consentModal" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
+      <div class="modal">
+        <span class="eyebrow">Privacidade</span>
+        <h2 id="consentTitle">Uso de localização</h2>
+        <p>Para sugerir rotas e locais próximos, o UrbanFlow precisa acessar sua localização em tempo real. Esses dados não serão armazenados permanentemente sem seu consentimento.</p>
+        <div class="modal-actions">
+          <button class="button button-secondary" type="button" id="declineConsentButton">Agora não</button>
+          <button class="button button-primary" type="button" id="acceptConsentButton">Permitir</button>
+        </div>
+      </div>
+    </div>
+ 
+    <div class="modal-backdrop" id="ratingModal" role="dialog" aria-modal="true" aria-labelledby="ratingModalTitle">
+      <div class="modal">
+        <span class="eyebrow">Local selecionado</span>
+        <h2 id="ratingModalTitle">Avaliar ponto</h2>
+        <p id="ratingModalText"></p>
+        <div class="modal-actions">
+          <button class="button button-secondary" type="button" id="closeRatingModalButton">Fechar</button>
+          <button class="button button-primary" type="button" data-screen-target="ratings">Avaliar local</button>
+        </div>
+      </div>
+    </div>
+ 
+   <!-- Overlay de Autenticação (login / cadastro) -->
+   <div class="modal-backdrop" id="authModal" role="dialog" aria-modal="true">
+     <div class="modal" style="max-width:400px">
+       <span class="eyebrow">Conta UrbanFlow</span>
+       <div style="display:flex;gap:.5rem;margin:.6rem 0 1rem">
+         <button class="button button-primary" id="authTabLogin" style="flex:1;padding:.5rem">Entrar</button>
+         <button class="button button-secondary" id="authTabSignup" style="flex:1;padding:.5rem">Cadastrar</button>
+       </div>
+
+       <form id="loginForm">
+         <label class="field"><span>E-mail</span>
+           <input id="loginEmail" type="text" autocomplete="username" placeholder="seu@email.com" /></label>
+         <label class="field"><span>Senha</span>
+           <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••" /></label>
+         <div id="loginMsg" style="font-size:.82rem;color:#dc2626;min-height:1.1em;margin:.3rem 0"></div>
+         <button class="button button-primary" type="submit" style="width:100%">Entrar</button>
+         <p style="font-size:.78rem;color:var(--muted);margin:.6rem 0 0;text-align:center">Teste rápido: login <strong>teste</strong> / senha <strong>teste</strong></p>
+       </form>
+
+       <form id="signupForm" style="display:none">
+         <label class="field"><span>E-mail</span>
+           <input id="signupEmail" type="text" autocomplete="username" placeholder="seu@email.com" /></label>
+         <label class="field"><span>Senha</span>
+           <input id="signupPass" type="password" autocomplete="new-password" placeholder="mínimo 4 caracteres" /></label>
+         <label class="field"><span>Confirmar senha</span>
+           <input id="signupConfirm" type="password" autocomplete="new-password" placeholder="repita a senha" /></label>
+         <div id="signupMsg" style="font-size:.82rem;color:#dc2626;min-height:1.1em;margin:.3rem 0"></div>
+         <button class="button button-primary" type="submit" style="width:100%">Criar conta</button>
+       </form>
+     </div>
+   </div>
+
+   <script type="module" src="src/js/main.js"></script>
+ 
+   <!-- Fallback de segurança: garante que o modal de consentimento sempre feche,
+        mesmo que o módulo principal (main.js) falhe ao carregar. -->
+   <script>
+     (function () {
+       function closeConsent() {
+         var m = document.getElementById('consentModal');
+         if (m) m.classList.remove('is-visible');
+       }
+       document.addEventListener('click', function (e) {
+         var t = e.target.closest('#acceptConsentButton, #declineConsentButton');
+         if (t) closeConsent();
+         var modal = document.getElementById('consentModal');
+         if (modal && e.target === modal) closeConsent();
+       });
+       document.addEventListener('keydown', function (e) {
+         if (e.key === 'Escape') closeConsent();
+       });
+     })();
+   </script>
+ 
+  </body>
+</html>
