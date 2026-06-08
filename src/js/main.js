@@ -67,6 +67,7 @@ async function initScreenAI(screenId) {
     if (screenId === 'final')     ai.renderFinal?.();
     if (screenId === 'map')       ai.initMapScreen?.();
     if (screenId === 'welcome')   ai.initWelcomeScreen?.();
+    if (screenId === 'ratings')   ai.initRatingsScreen?.();
     if (!initialized.has(screenId)) {
       initialized.add(screenId);
       switch (screenId) {
