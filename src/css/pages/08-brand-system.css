@@ -1,0 +1,477 @@
+/* Identidade visual, navegação e ícones lineares do produto. */
+
+/* Estrutura escura da interface com grade sutil e acentos azul/teal. */
+.app-shell {
+  background:
+    radial-gradient(760px 440px at 82% -12%, rgba(37, 99, 255, 0.16), transparent 72%),
+    radial-gradient(520px 360px at 22% 12%, rgba(0, 229, 211, 0.08), transparent 70%),
+    linear-gradient(90deg, rgba(53, 163, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(53, 163, 255, 0.045) 1px, transparent 1px),
+    var(--navy-deep);
+  background-size: auto, auto, 42px 42px, 42px 42px, auto;
+}
+
+.app-header {
+  min-height: 73px;
+  padding: 0.75rem 1rem;
+  background:
+    radial-gradient(520px 220px at 72% -70%, rgba(37, 99, 255, 0.28), transparent 72%),
+    rgba(5, 13, 27, 0.93);
+  backdrop-filter: blur(18px);
+}
+
+.brand {
+  gap: 0.72rem;
+}
+
+.brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  border-color: rgba(230, 237, 243, 0.16);
+  background: rgba(11, 19, 36, 0.68);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 255, 0.18), 0 0 24px rgba(37, 99, 255, 0.16);
+}
+
+.brand-mark img,
+.hero-lockup-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brand strong {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.header-actions {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  margin-right: 0.75rem;
+}
+
+.header-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(230, 237, 243, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(230, 237, 243, 0.82);
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.header-icon:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0, 229, 211, 0.42);
+  background: rgba(0, 229, 211, 0.08);
+  color: #ffffff;
+}
+
+.header-icon .line-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.primary-nav {
+  border-color: rgba(230, 237, 243, 0.12);
+  background: rgba(5, 13, 27, 0.98);
+}
+
+@media (min-width: 1020px) {
+  .app-shell {
+    grid-template-columns: 250px minmax(0, 1fr);
+  }
+
+  .header-actions {
+    display: flex;
+  }
+
+  .primary-nav {
+    top: 73px;
+    gap: 0.46rem;
+    padding: 1rem;
+    background:
+      radial-gradient(250px 260px at 44% 5%, rgba(37, 99, 255, 0.18), transparent 70%),
+      linear-gradient(90deg, rgba(53, 163, 255, 0.07) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(53, 163, 255, 0.045) 1px, transparent 1px),
+      rgba(5, 13, 27, 0.98);
+    background-size: auto, 42px 42px, 42px 42px, auto;
+    box-shadow: 14px 0 42px rgba(0, 0, 0, 0.24);
+  }
+
+  .primary-nav::before {
+    min-height: 174px;
+    margin: 0 0 0.8rem;
+    border-radius: 26px;
+    background:
+      radial-gradient(circle at 78% 48%, rgba(255, 255, 255, 0.12) 0 15px, transparent 16px),
+      url("../../assets/img/urbanflow-symbol.png") center 52% / 78% auto no-repeat;
+  }
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.68rem;
+  min-height: 49px;
+  padding: 0.74rem 0.86rem;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  color: rgba(230, 237, 243, 0.72);
+  font-weight: 750;
+}
+
+.nav-link .line-icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  color: rgba(230, 237, 243, 0.78);
+}
+
+.nav-link.is-active,
+.nav-link:hover {
+  border-color: rgba(0, 229, 211, 0.24);
+  background: linear-gradient(90deg, rgba(0, 229, 211, 0.18), rgba(37, 99, 255, 0.09));
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 var(--flow), 0 12px 30px rgba(0, 0, 0, 0.16);
+}
+
+.nav-link.is-active .line-icon,
+.nav-link:hover .line-icon {
+  color: var(--flow);
+}
+
+.hero-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(0.85rem, 2vw, 1.25rem);
+  width: fit-content;
+  max-width: 100%;
+  padding: clamp(0.72rem, 1.5vw, 1rem) clamp(0.92rem, 2vw, 1.35rem);
+  border: 1px solid rgba(230, 237, 243, 0.13);
+  border-radius: 26px;
+  background:
+    linear-gradient(145deg, rgba(11, 19, 36, 0.78), rgba(7, 14, 28, 0.64));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 24px 60px rgba(0, 0, 0, 0.3);
+}
+
+.hero-lockup-mark {
+  overflow: hidden;
+  flex: 0 0 auto;
+  width: clamp(58px, 9vw, 92px);
+  height: clamp(58px, 9vw, 92px);
+  border-radius: clamp(17px, 3vw, 28px);
+  border: 1px solid rgba(230, 237, 243, 0.16);
+  background: rgba(5, 13, 27, 0.62);
+}
+
+.hero-wordmark {
+  display: grid;
+  min-width: 0;
+  gap: 0.18rem;
+}
+
+.hero-wordmark strong {
+  display: flex;
+  align-items: baseline;
+  color: #ffffff;
+  font-family: var(--brand-font);
+  font-size: clamp(2rem, 8vw, 4.8rem);
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 0.96;
+}
+
+.hero-wordmark strong span:last-child {
+  background: linear-gradient(90deg, var(--sky), var(--flow));
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-wordmark small {
+  color: rgba(230, 237, 243, 0.58);
+  font-size: clamp(0.72rem, 2vw, 1.08rem);
+  font-weight: 500;
+  letter-spacing: 0.33em;
+  text-transform: lowercase;
+}
+
+.hero-brand-full {
+  display: none;
+}
+
+.welcome-hero {
+  overflow: hidden;
+  padding: clamp(1.1rem, 3vw, 2.2rem);
+  border-radius: 34px;
+  background:
+    radial-gradient(560px 320px at 78% 28%, rgba(37, 99, 255, 0.23), transparent 72%),
+    radial-gradient(440px 300px at 83% 72%, rgba(0, 229, 211, 0.12), transparent 70%),
+    linear-gradient(90deg, rgba(53, 163, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(53, 163, 255, 0.06) 1px, transparent 1px),
+    rgba(11, 19, 36, 0.82);
+}
+
+.welcome-copy h1 {
+  max-width: 650px;
+  font-size: clamp(2.25rem, 5.4vw, 4.65rem);
+  line-height: 0.98;
+}
+
+.welcome-copy p {
+  font-size: clamp(1rem, 1.5vw, 1.12rem);
+}
+
+.app-preview-card {
+  border-radius: 28px;
+  background:
+    linear-gradient(145deg, rgba(14, 29, 51, 0.76), rgba(6, 14, 28, 0.86));
+  box-shadow: inset 0 0 0 1px rgba(230, 237, 243, 0.04), 0 28px 68px rgba(0, 0, 0, 0.34);
+}
+
+.preview-topbar img {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  object-fit: cover;
+}
+
+.preview-topbar span:last-child {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(230, 237, 243, 0.18);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 38%, transparent 0 4px, rgba(230, 237, 243, 0.8) 5px 7px, transparent 8px),
+    radial-gradient(ellipse at 50% 74%, transparent 0 8px, rgba(230, 237, 243, 0.75) 9px 10px, transparent 11px);
+}
+
+.preview-map {
+  min-height: 260px;
+  border-radius: 24px;
+}
+
+.preview-stats {
+  border: 1px solid rgba(0, 229, 211, 0.14);
+  background:
+    linear-gradient(90deg, rgba(0, 229, 211, 0.12), rgba(37, 99, 255, 0.08));
+}
+
+.screen-heading {
+  min-height: 0;
+  max-width: none;
+  margin: 0.25rem 0 1.2rem;
+  padding: clamp(1rem, 2.4vw, 1.45rem);
+  border-color: rgba(230, 237, 243, 0.12);
+  border-radius: 26px;
+  background:
+    radial-gradient(420px 180px at 82% 6%, rgba(37, 99, 255, 0.16), transparent 74%),
+    linear-gradient(145deg, rgba(14, 29, 51, 0.78), rgba(7, 14, 28, 0.72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 20px 54px rgba(0, 0, 0, 0.22);
+}
+
+.screen-heading::before {
+  background:
+    linear-gradient(90deg, rgba(53, 163, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(53, 163, 255, 0.055) 1px, transparent 1px);
+  background-size: 42px 42px, 42px 42px;
+}
+
+.screen-heading::after {
+  right: -16px;
+  bottom: -24px;
+  width: min(42vw, 360px);
+  height: 150px;
+  opacity: 0.26;
+  background:
+    radial-gradient(circle at 83% 52%, rgba(255, 255, 255, 0.9) 0 5px, rgba(0, 229, 211, 0.85) 6px 13px, transparent 14px),
+    radial-gradient(ellipse at 42% 112%, transparent 44%, rgba(37, 99, 255, 0.92) 46% 52%, transparent 54%),
+    radial-gradient(ellipse at 62% 116%, transparent 43%, rgba(0, 229, 211, 0.78) 45% 51%, transparent 53%),
+    linear-gradient(90deg, rgba(37, 99, 255, 0.32), transparent 72%);
+}
+
+.screen-heading h1 {
+  max-width: min(820px, calc(100% - 100px));
+  color: #ffffff;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1;
+}
+
+.screen-heading .eyebrow {
+  padding: 0.25rem 0.7rem;
+  border-color: rgba(0, 229, 211, 0.36);
+  background: rgba(0, 229, 211, 0.08);
+  color: var(--flow);
+  box-shadow: none;
+}
+
+.screen-subtitle {
+  color: rgba(230, 237, 243, 0.68);
+}
+
+.panel,
+.card,
+.indicator-card,
+.agenda-item,
+.itinerary-item,
+.rating-card,
+.timeline-row,
+.logic-card,
+.recommendation-card,
+.pdf-document {
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(17, 31, 54, 0.76), rgba(8, 18, 34, 0.82));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 18px 46px rgba(0, 0, 0, 0.22);
+}
+
+.button {
+  border-radius: 12px;
+}
+
+.button-primary {
+  background: linear-gradient(135deg, #2563ff, #00e5d3);
+}
+
+.button-secondary,
+.button-ghost {
+  border-color: rgba(230, 237, 243, 0.15);
+  background: rgba(11, 19, 36, 0.58);
+  color: #ffffff;
+}
+
+@media (max-width: 560px) {
+  .header-actions {
+    display: none;
+  }
+
+  .hero-lockup {
+    width: 100%;
+  }
+
+  .hero-wordmark small {
+    letter-spacing: 0.18em;
+  }
+
+  .screen-heading h1 {
+    max-width: 100%;
+  }
+}
+
+/* Ícones lineares feitos em CSS para a navegação parecer app de produto, não lista de abas. */
+.icon-home::before {
+  left: 3px;
+  top: 8px;
+  width: 13px;
+  height: 10px;
+  border-radius: 2px 2px 4px 4px;
+}
+
+.icon-home::after {
+  left: 5px;
+  top: 2px;
+  width: 10px;
+  height: 10px;
+  border-right: 0;
+  border-bottom: 0;
+  transform: rotate(45deg);
+}
+
+.icon-calendar::before {
+  inset: 4px 2px 2px;
+  border-radius: 4px;
+}
+
+.icon-calendar::after {
+  left: 2px;
+  right: 2px;
+  top: 8px;
+  border-width: 2px 0 0;
+}
+
+.icon-dashboard::before {
+  inset: 3px;
+  border-radius: 4px;
+}
+
+.icon-dashboard::after {
+  left: 7px;
+  bottom: 5px;
+  width: 8px;
+  height: 9px;
+  border-width: 0 0 2px 2px;
+  transform: skewY(-18deg);
+}
+
+.icon-star::before {
+  left: 5px;
+  top: 2px;
+  width: 10px;
+  height: 10px;
+  border-right: 0;
+  border-bottom: 0;
+  transform: rotate(45deg);
+}
+
+.icon-star::after {
+  left: 8px;
+  top: 8px;
+  width: 5px;
+  height: 9px;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.icon-bell::before {
+  left: 5px;
+  top: 3px;
+  width: 10px;
+  height: 13px;
+  border-radius: 9px 9px 5px 5px;
+}
+
+.icon-bell::after {
+  left: 8px;
+  bottom: 2px;
+  width: 5px;
+  height: 3px;
+  border-width: 0 0 2px;
+}
+
+.icon-check::before {
+  inset: 3px;
+  border-radius: 5px;
+}
+
+.icon-check::after {
+  left: 6px;
+  top: 9px;
+  width: 9px;
+  height: 5px;
+  border-top: 0;
+  border-right: 0;
+  transform: rotate(-45deg);
+}
+
+.icon-user::before {
+  left: 7px;
+  top: 3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+}
+
+.icon-user::after {
+  left: 4px;
+  bottom: 3px;
+  width: 13px;
+  height: 8px;
+  border-radius: 999px 999px 0 0;
+}
+

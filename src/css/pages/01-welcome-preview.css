@@ -1,0 +1,335 @@
+/* Boas-vindas, marca e preview do app. */
+
+/* Base das telas e componentes específicos da jornada principal. */
+
+/* Estrutura das telas: hero, mapa, linha do tempo, lógica do sistema e ajustes de mobile. */
+
+/* Hero de boas-vindas */
+.welcome-hero {
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem;
+  border: 1px solid rgba(31, 143, 222, 0.18);
+  border-radius: 20px;
+  background:
+    linear-gradient(90deg, rgba(31, 143, 222, 0.1) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(31, 143, 222, 0.08) 1px, transparent 1px),
+    radial-gradient(130% 130% at 100% 0%, #15527f 0%, var(--navy) 56%);
+  background-size: 34px 34px, 34px 34px, auto;
+  box-shadow: var(--shadow);
+}
+
+/* Elemento decorativo do hero com arco, curvas de rota, skyline e ponto de localização. */
+.hero-brand-shape {
+  position: absolute;
+  right: -56px;
+  bottom: -104px;
+  width: min(58vw, 520px);
+  aspect-ratio: 1;
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.brand-arc {
+  position: absolute;
+  inset: 4% 9% 34%;
+  border: 26px solid rgba(77, 182, 255, 0.48);
+  border-bottom: 0;
+  border-radius: 999px 999px 0 0;
+}
+
+.brand-building {
+  position: absolute;
+  bottom: 44%;
+  width: 9%;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0.26));
+}
+
+.building-one {
+  left: 29%;
+  height: 22%;
+}
+
+.building-two {
+  left: 42%;
+  height: 35%;
+}
+
+.building-three {
+  left: 56%;
+  height: 28%;
+}
+
+.brand-curve {
+  position: absolute;
+  bottom: 13%;
+  width: 33%;
+  height: 55%;
+  border: 30px solid rgba(255, 255, 255, 0.78);
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0 0 999px 0;
+  transform-origin: bottom;
+}
+
+.curve-one {
+  left: 30%;
+  transform: rotate(28deg);
+}
+
+.curve-two {
+  left: 46%;
+  border-color: rgba(0, 168, 143, 0.72);
+  transform: rotate(45deg);
+}
+
+.brand-node {
+  position: absolute;
+  right: 18%;
+  bottom: 33%;
+  width: 42px;
+  height: 42px;
+  border: 10px solid #ffffff;
+  border-radius: 999px;
+}
+
+.welcome-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1rem;
+  color: #ffffff;
+}
+
+.hero-lockup {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  gap: 0.8rem;
+  padding: 0.35rem 0.85rem 0.35rem 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.hero-lockup-mark {
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 12px 26px rgba(2, 16, 29, 0.24);
+}
+
+.hero-lockup-mark img {
+  width: 120%;
+  height: 120%;
+  object-fit: cover;
+}
+
+.hero-wordmark {
+  display: inline-flex;
+  min-width: 0;
+  color: #ffffff;
+  font-family: var(--brand-font);
+  font-size: clamp(1.6rem, 4vw, 2.35rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.hero-wordmark span:last-child {
+  background: linear-gradient(90deg, var(--sky), var(--flow));
+  background-clip: text;
+  color: transparent;
+}
+
+.welcome-copy h1,
+.welcome-copy p {
+  color: #ffffff;
+}
+
+.welcome-copy p {
+  max-width: 680px;
+  font-size: 1.02rem;
+  opacity: 0.82;
+}
+
+.welcome-hero .eyebrow {
+  background: rgba(233, 251, 247, 0.16);
+  color: #d8fff7;
+  box-shadow: inset 0 0 0 1px rgba(233, 251, 247, 0.22);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.app-preview-card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.75rem;
+  min-height: 360px;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 30px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(235, 249, 247, 0.86));
+  box-shadow: 0 22px 48px rgba(2, 16, 29, 0.18);
+}
+
+.preview-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--navy);
+}
+
+.preview-topbar img {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(31, 143, 222, 0.16);
+  border-radius: 999px;
+  object-fit: cover;
+  box-shadow: var(--shadow-tiny);
+}
+
+.preview-topbar span {
+  width: 34px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(6, 35, 63, 0.14);
+}
+
+.preview-map {
+  position: relative;
+  min-height: 230px;
+  overflow: hidden;
+  border: 1px solid rgba(77, 182, 255, 0.22);
+  border-radius: 24px;
+  background:
+    linear-gradient(90deg, rgba(6, 35, 63, 0.1) 8px, transparent 8px),
+    linear-gradient(35deg, transparent 44%, rgba(6, 35, 63, 0.12) 44% 52%, transparent 52%),
+    linear-gradient(90deg, rgba(77, 182, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(77, 182, 255, 0.16) 1px, transparent 1px),
+    #eaf6ff;
+  background-position: 8% 45%, center, 0 0, 0 0, center;
+  background-repeat: no-repeat, repeat, repeat, repeat, no-repeat;
+  background-size: 82% 18px, auto, 34px 34px, 34px 34px, auto;
+}
+
+.preview-arc {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 15%;
+  height: 42%;
+  border: 10px solid rgba(22, 119, 199, 0.18);
+  border-bottom: 0;
+  border-radius: 999px 999px 0 0;
+}
+
+.preview-building {
+  position: absolute;
+  bottom: 48%;
+  z-index: 1;
+  width: 9%;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, var(--navy), #0f5790);
+}
+
+.preview-building-one {
+  left: 35%;
+  height: 22%;
+}
+
+.preview-building-two {
+  left: 47%;
+  height: 34%;
+}
+
+.preview-building-three {
+  left: 60%;
+  height: 26%;
+}
+
+.preview-route {
+  position: absolute;
+  z-index: 2;
+  left: 14%;
+  right: 18%;
+  top: 52%;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--flow);
+  transform: rotate(-10deg);
+}
+
+.preview-route-alt {
+  left: 28%;
+  right: 22%;
+  top: 60%;
+  background: var(--primary-dark);
+  transform: rotate(18deg);
+}
+
+.preview-pin,
+.preview-risk {
+  position: absolute;
+  z-index: 3;
+  display: block;
+  border-radius: 999px;
+}
+
+.preview-pin {
+  width: 26px;
+  height: 26px;
+  border: 4px solid #ffffff;
+  background: var(--sky);
+  box-shadow: var(--shadow-soft);
+}
+
+.pin-a {
+  left: 22%;
+  top: 48%;
+}
+
+.pin-b {
+  right: 19%;
+  top: 38%;
+  background: var(--flow);
+}
+
+.preview-risk {
+  z-index: 2;
+  right: 24%;
+  bottom: 18%;
+  width: 68px;
+  height: 42px;
+  border: 2px solid rgba(220, 38, 38, 0.42);
+  background: rgba(220, 38, 38, 0.14);
+}
+
+.preview-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem;
+  border-radius: 20px;
+  background: var(--navy);
+  color: #ffffff;
+}
+
+.preview-stats span {
+  color: rgba(255, 255, 255, 0.72);
+}

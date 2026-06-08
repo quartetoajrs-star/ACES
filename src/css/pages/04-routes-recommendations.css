@@ -1,0 +1,89 @@
+/* Rotas simuladas e cards de recomendação. */
+
+.route-head {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.route-mode {
+  display: grid;
+  place-items: center;
+  flex: 0 0 58px;
+  height: 58px;
+  border-radius: 999px;
+  background: linear-gradient(145deg, var(--sky), var(--flow));
+  color: #04121f;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.route-form,
+.pdf-document,
+.logic-card,
+.recommendation-card {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Curva "flow" do logotipo no canto inferior direito destes cards, como assinatura recorrente. */
+.route-form::after,
+.pdf-document::after,
+.logic-card::after,
+.recommendation-card::after {
+  content: "";
+  position: absolute;
+  right: -28px;
+  bottom: -30px;
+  width: 116px;
+  height: 78px;
+  border: 12px solid rgba(18, 178, 154, 0.16);
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0 0 999px 0;
+  pointer-events: none;
+  transform: rotate(26deg);
+}
+
+.route-form > *,
+.pdf-document > *,
+.logic-card > *,
+.recommendation-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.route-line {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.45rem;
+  margin: 1rem 0;
+}
+
+.route-line span {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--flow), var(--sky));
+}
+
+.route-details ol {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.alternative-route {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(0, 229, 211, 0.28);
+  border-radius: 20px;
+  background: linear-gradient(150deg, rgba(0, 229, 211, 0.12), var(--surface));
+}
+
+.recommendation-card {
+  justify-content: space-between;
+  border-color: rgba(0, 229, 211, 0.22);
+  background: linear-gradient(150deg, rgba(0, 229, 211, 0.1), var(--surface));
+}
+
+.agenda-list,
